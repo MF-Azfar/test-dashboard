@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Azfar\\\\test1\" -Recurse -Depth 3 | Where-Object { !$_.PSIsContainer } | Select-Object FullName, Length)",
+      "Bash(ls \"C:\\\\Users\\\\Azfar\\\\qa-platform\" 2>/dev/null || echo \"Directory does not exist\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Azfar\\\\qa-platform\\\\public\")",
+      "PowerShell(netstat -ano)"
+    ]
+  }
+}

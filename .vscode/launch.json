@@ -8,6 +8,14 @@
       "program": "${workspaceFolder}/start.js",
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "⚙ Setup (first time)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/setup.js",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

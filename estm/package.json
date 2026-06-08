@@ -1,0 +1,19 @@
+{
+  "name": "test1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "estm_bypass": "node scripts/run-estm-bypass-interactive.cjs",
+    "run-estm-bypass": "npm run estm_bypass",
+    "test:estm:ask": "npm run estm_bypass"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0"
+  }
+}

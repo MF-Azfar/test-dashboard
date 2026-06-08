@@ -8,9 +8,9 @@ const os         = require('os');
 const app  = express();
 const PORT = 3000;
 
-// ── Project paths ─────────────────────────────────────────────────────────────
-const INSURANCE_DIR = 'C:\\Users\\Azfar\\eauto-insurance-checker';
-const ESTM_DIR      = 'C:\\Users\\Azfar\\test1\\test1';
+// ── Project paths (relative — works on any machine after cloning) ─────────────
+const INSURANCE_DIR = path.join(__dirname, 'insurance');
+const ESTM_DIR      = path.join(__dirname, 'estm');
 
 // Use the @playwright/test CLI JS directly — no .cmd, no npx, no shell needed
 const INS_PW_CLI  = path.join(INSURANCE_DIR, 'node_modules', '@playwright', 'test', 'cli.js');

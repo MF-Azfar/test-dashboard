@@ -1,4 +1,22 @@
+# Dependencies — run "node setup.js" to install
 node_modules/
+estm/node_modules/
+insurance/node_modules/
+
+# Temp files generated at runtime
 temp/
 *.xlsx
+
+# Playwright reports & results
+estm/playwright-report/
+estm/test-results/
+insurance/playwright-report/
+insurance/test-results/
+
+# Env / secrets
 .env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
