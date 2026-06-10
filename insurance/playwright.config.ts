@@ -20,19 +20,21 @@ export default defineConfig({
   ],
 
   use: {
-    // Browser settings
-    headless: false, // Set to true for CI/headless runs
-    
+    // Browser visibility — controlled by the platform via INS_HEADLESS env var.
+    // INS_HEADLESS=true  -> no browser window (faster, less resources)
+    // INS_HEADLESS=false -> visible browser window (default)
+    headless: process.env.INS_HEADLESS === 'true',
+
     // Viewport
     viewport: { width: 1920, height: 1080 },
-    
+
     // Timeouts
     navigationTimeout: 60000,
     actionTimeout: 30000,
-    
+
     // Screenshots on failure
     screenshot: 'only-on-failure',
-    
+
     // Trace on failure
     trace: 'retain-on-failure',
   },
@@ -42,7 +44,7 @@ export default defineConfig({
       name: 'insurance-checker',
       use: {
         ...devices['Desktop Chrome'],
-        headless: false,
+        headless: process.env.INS_HEADLESS === 'true',
       },
     },
   ],

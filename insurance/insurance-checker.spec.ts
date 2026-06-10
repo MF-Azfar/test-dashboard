@@ -17,9 +17,11 @@ const CONFIG = {
   inputFile: process.env.INS_INPUT_FILE || './input-vehicles.xlsx',
   outputFile: process.env.INS_OUTPUT_FILE || './output-results.xlsx',
   navigationTimeout: 60000,
-  waitAfterPageLoad: 3000,
-  waitAfterClick: 5000,
-  pollingInterval: 2000,
+  // These fixed waits can be tuned via env vars — the platform sends tighter
+  // values in headless mode (no rendering) to speed things up safely.
+  waitAfterPageLoad: parseInt(process.env.INS_WAIT_PAGE  || '3000', 10),
+  waitAfterClick:    parseInt(process.env.INS_WAIT_CLICK || '5000', 10),
+  pollingInterval:   parseInt(process.env.INS_POLL       || '2000', 10),
   maxWaitForResult: 60000,
 };
 

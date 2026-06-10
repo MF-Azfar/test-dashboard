@@ -165,10 +165,19 @@ function runInsuranceChunk(chunk, config, workerIdx, sseRes) {
       return;
     }
 
-    const modeFlag = config.mode !== 'headless' ? ['--headed'] : [];
-    const args = [INS_PW_CLI, 'test', 'insurance-checker.spec.ts', '--workers=1', '--reporter=list', ...modeFlag];
+    const isHeadless = config.mode === 'headless';
+    // Headless visibility is driven by the INS_HEADLESS env var (read by playwright.config.ts),
+    // NOT by the --headed CLI flag — so the config and our intent never conflict.
+    const args = [INS_PW_CLI, 'test', 'insurance-checker.spec.ts', '--workers=1', '--reporter=list'];
+
+    // In headless mode there is no rendering, so we can safely tighten the fixed
+    // safety waits for a real speed boost. Headed keeps the original safe timings.
+    const tighterWaits = isHeadless
+      ? { INS_WAIT_PAGE: '1500', INS_WAIT_CLICK: '2500', INS_POLL: '1500' }
+      : {};
 
     const child = spawnPlaywright(args, INSURANCE_DIR, {
+      INS_HEADLESS:    isHeadless ? 'true' : 'false',
       INS_BASE_URL:    `https://staging.eauto.my/${config.env}`,
       INS_USERNAME:    config.username        || 'Jasons',
       INS_PASSWORD:    config.password        || '',
@@ -177,6 +186,7 @@ function runInsuranceChunk(chunk, config, workerIdx, sseRes) {
       INS_CATEGORY:    config.vehicleCategory || 'individual',
       INS_INPUT_FILE:  inputPath,
       INS_OUTPUT_FILE: outputPath,
+      ...tighterWaits,
     });
 
     let buf = '';
@@ -238,8 +248,8 @@ function spawnPlaywright(args, cwd, extraEnv) {
     cwd,
     env,
     shell:       false,
-    detached:    true,    // lets playwright spawn Chromium as grandchild
-    windowsHide: false,   // allow browser window to appear (headed mode)
+    detached:    false,   // detached:true forces a new console window on Windows (the black box)
+    windowsHide: true,    // suppress the console window for the node process
   });
 }
 
