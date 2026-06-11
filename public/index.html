@@ -5,28 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>eAuto QA Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0f0f0f;
-  --surface: #161616;
-  --surface2: #1e1e1e;
-  --surface3: #252525;
-  --border: #2a2a2a;
-  --border2: #333;
-  --text: #e8e8e8;
-  --text2: #888;
-  --text3: #555;
-  --accent: #4ade80;
-  --blue: #60a5fa;
-  --amber: #fbbf24;
-  --red: #f87171;
-  --purple: #a78bfa;
-  --mono: 'IBM Plex Mono', monospace;
-  --sans: 'IBM Plex Sans', sans-serif;
+  /* ── Cyberpunk sunset palette ── */
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --surface2: #15151f;
+  --surface3: #1d1d2b;
+  --border: #2a2236;
+  --border2: #3a2f48;
+  --text: #f3e9f5;
+  --text2: #9b8fb0;
+  --text3: #645a78;
+
+  /* primary = hot pink, leads the sunset gradient */
+  --accent: #ff3d7f;
+  --accent-dim: rgba(255,61,127,0.12);
+  --accent-border: rgba(255,61,127,0.4);
+  --orange: #ff8a3d;
+  --sunset: linear-gradient(135deg, #ff3d7f 0%, #ff6b4a 50%, #ff8a3d 100%);
+  --sunset-soft: linear-gradient(135deg, rgba(255,61,127,0.18), rgba(255,138,61,0.18));
+
+  /* secondary = neon cyan (classic cyberpunk pairing) */
+  --blue: #2de2ff;
+  --blue-dim: rgba(45,226,255,0.12);
+  --amber: #ffb347;
+  --amber-dim: rgba(255,179,71,0.12);
+  --red: #ff4d6d;
+  --red-dim: rgba(255,77,109,0.12);
+  --purple: #c77dff;
+  --purple-dim: rgba(199,125,255,0.12);
+
+  /* neon glows */
+  --glow-pink: 0 0 8px rgba(255,61,127,0.5), 0 0 2px rgba(255,61,127,0.8);
+  --glow-cyan: 0 0 8px rgba(45,226,255,0.45), 0 0 2px rgba(45,226,255,0.8);
+
+  --mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  --display: 'Orbitron', 'JetBrains Mono', monospace;
+  --sans: 'JetBrains Mono', 'IBM Plex Mono', monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  min-height: 100vh;
+  position: relative;
+}
+/* faint cyber grid */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(45,226,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,61,127,0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+/* glowing radial wash in the corners */
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255,61,127,0.10), transparent 38%),
+    radial-gradient(circle at 100% 100%, rgba(45,226,255,0.08), transparent 40%);
+}
+/* keep app content above the bg layers */
+.nav, .tab-panel, #qt-modal-overlay { position: relative; z-index: 1; }
+/* scanline overlay */
+#scanlines { position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.10) 3px);
+  mix-blend-mode: multiply; opacity: 0.5; }
 
 /* ── NAV ── */
 .nav { display: flex; align-items: center; gap: 2px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); height: 44px; position: sticky; top: 0; z-index: 100; }
@@ -171,67 +219,126 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
 .skipped-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text2); }
 .skipped-table tr:last-child td { border-bottom: none; }
 
-/* ── QA TRACKER ── */
-.tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.tracker-header h1 { font-size: 20px; font-weight: 600; }
-.tracker-header .date { font-size: 12px; color: var(--text3); margin-top: 3px; }
-.stats-row { display: flex; gap: 12px; margin-bottom: 20px; }
-.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; flex: 1; }
-.stat-box .n { font-size: 24px; font-weight: 600; }
-.stat-box .l { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.stat-box.blue .n { color: var(--blue); }
-.stat-box.red .n { color: var(--red); }
-.stat-box.green .n { color: var(--accent); }
-.filter-bar { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
-.filter-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 12px; cursor: pointer; }
-.filter-btn:hover { border-color: var(--border2); color: var(--text); }
-.filter-btn.active { background: var(--surface3); border-color: var(--border2); color: var(--text); }
-.tickets-section { margin-bottom: 28px; }
-.tickets-section h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
-.ticket-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s; }
-.ticket-card:hover { border-color: var(--border2); }
-.ticket-card.completed { opacity: 0.6; }
-.ticket-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.ticket-id { font-family: var(--mono); font-size: 11px; color: var(--text3); }
-.ticket-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.ticket-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
-.badge-type { background: rgba(96,165,250,0.12); color: var(--blue); }
-.badge-prio-high { background: rgba(248,113,113,0.12); color: var(--red); }
-.badge-prio-medium { background: rgba(251,191,36,0.12); color: var(--amber); }
-.badge-prio-low { background: rgba(74,222,128,0.12); color: var(--accent); }
-.badge-status-todo { background: rgba(136,136,136,0.12); color: var(--text2); }
-.badge-status-inprogress { background: rgba(96,165,250,0.12); color: var(--blue); }
-.badge-status-blocked { background: rgba(248,113,113,0.12); color: var(--red); }
-.badge-status-completed { background: rgba(74,222,128,0.12); color: var(--accent); }
-.ticket-env { font-size: 11px; font-family: var(--mono); color: var(--text3); }
-.ticket-date { font-size: 11px; color: var(--text3); }
-.ticket-progress { margin-top: 10px; }
-.progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 5px; }
-.progress-bar { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.3s; }
-.progress-fill.done { background: var(--accent); }
-.blocked-reason { font-size: 12px; color: var(--red); margin-top: 8px; padding: 6px 10px; background: rgba(248,113,113,0.06); border-radius: 5px; }
+/* ══════════ QA TRACKER (ported from qa-tracker_1.html, scoped to #tab-tracker) ══════════ */
+#tab-tracker { max-width: 900px; margin: 0 auto; }
 
-/* ── MODAL ── */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; }
-.modal-overlay.open { display: flex; }
-.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 28px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-header h2 { font-size: 16px; font-weight: 600; }
-.modal-close { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; padding: 2px 6px; }
-.modal-close:hover { color: var(--text); }
-.modal-section { margin-bottom: 18px; }
-.modal-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-.btn-secondary { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 9px 18px; border-radius: 7px; font-size: 13px; cursor: pointer; }
-.btn-primary { background: var(--accent); color: #0a0a0a; padding: 9px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
-.btn-danger { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--red); padding: 9px 18px; border-radius: 7px; font-size: 13px; cursor: pointer; }
-.modules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.module-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-.module-item input[type=checkbox] { accent-color: var(--accent); }
-.module-status { margin-left: auto; }
-.module-status select { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; font-size: 11px; color: var(--text2); padding: 2px 4px; width: auto; }
+/* Header */
+#tab-tracker .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; gap: 16px; flex-wrap: wrap; }
+#tab-tracker .header-left h1 { font-family: var(--mono); font-size: 18px; font-weight: 500; letter-spacing: -0.3px; }
+#tab-tracker .header-left p { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+#tab-tracker .btn-add { background: var(--accent); color: #0a0a0a; border: none; padding: 8px 16px; border-radius: 6px; font-family: var(--mono); font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+#tab-tracker .btn-add:hover { opacity: 0.85; }
+
+/* Stats bar */
+#tab-tracker .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+#tab-tracker .stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+#tab-tracker .stat-label { font-size: 10px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+#tab-tracker .stat-val { font-size: 22px; font-family: var(--mono); font-weight: 500; }
+#tab-tracker .stat-val.green { color: var(--accent); }
+#tab-tracker .stat-val.blue { color: var(--blue); }
+#tab-tracker .stat-val.amber { color: var(--amber); }
+#tab-tracker .stat-val.red { color: var(--red); }
+
+/* Section header */
+#tab-tracker .section-head { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; margin-top: 28px; }
+#tab-tracker .section-head::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+#tab-tracker .section-badge { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 10px; }
+
+/* Ticket card */
+#tab-tracker .ticket { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 10px; transition: border-color 0.15s; animation: qtFadeIn 0.2s ease; }
+@keyframes qtFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+#tab-tracker .ticket:hover { border-color: var(--border2); }
+#tab-tracker .ticket.done { opacity: 0.55; }
+#tab-tracker .ticket.blocked { border-left: 2px solid var(--red); }
+#tab-tracker .ticket-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+#tab-tracker .ticket-id { font-family: var(--mono); font-size: 11px; color: var(--text3); white-space: nowrap; padding-top: 2px; }
+#tab-tracker .ticket-title { flex: 1; font-size: 14px; font-weight: 400; }
+#tab-tracker .ticket-actions { display: flex; gap: 6px; align-items: center; }
+
+/* tags */
+#tab-tracker .ticket-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+#tab-tracker .tag { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+#tab-tracker .tag-type-bug { background: var(--red-dim); color: var(--red); border: 0.5px solid rgba(248,113,113,0.2); }
+#tab-tracker .tag-type-story { background: var(--blue-dim); color: var(--blue); border: 0.5px solid rgba(96,165,250,0.2); }
+#tab-tracker .tag-type-task { background: var(--purple-dim); color: var(--purple); border: 0.5px solid rgba(167,139,250,0.2); }
+#tab-tracker .tag-type-subtask { background: var(--amber-dim); color: var(--amber); border: 0.5px solid rgba(251,191,36,0.2); }
+#tab-tracker .tag-pri-high { background: var(--red-dim); color: var(--red); }
+#tab-tracker .tag-pri-medium { background: var(--amber-dim); color: var(--amber); }
+#tab-tracker .tag-pri-low { background: var(--surface3); color: var(--text2); border: 0.5px solid var(--border); }
+#tab-tracker .tag-status-inprogress { background: var(--blue-dim); color: var(--blue); }
+#tab-tracker .tag-status-todo { background: var(--surface3); color: var(--text2); border: 0.5px solid var(--border); }
+#tab-tracker .tag-status-blocked { background: var(--red-dim); color: var(--red); }
+#tab-tracker .tag-status-done { background: var(--accent-dim); color: var(--accent); }
+#tab-tracker .tag-env { background: var(--surface3); color: var(--text2); border: 0.5px solid var(--border); }
+
+/* progress */
+#tab-tracker .progress-section { margin-bottom: 12px; }
+#tab-tracker .progress-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+#tab-tracker .progress-name { font-size: 12px; color: var(--text2); }
+#tab-tracker .progress-pct { font-family: var(--mono); font-size: 12px; color: var(--text); }
+#tab-tracker .progress-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+#tab-tracker .progress-bar-wrap { height: 4px; background: var(--surface3); border-radius: 99px; overflow: hidden; }
+#tab-tracker .progress-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.4s ease; }
+#tab-tracker .progress-bar-fill.low { background: var(--red); }
+#tab-tracker .progress-bar-fill.medium { background: var(--amber); }
+#tab-tracker .progress-modules { display: flex; flex-direction: column; gap: 7px; }
+#tab-tracker .blocked-note { background: var(--red-dim); border: 0.5px solid rgba(248,113,113,0.2); border-radius: 6px; padding: 6px 10px; font-size: 12px; color: var(--red); margin-bottom: 12px; }
+
+/* daily log */
+#tab-tracker .log-section { border-top: 0.5px solid var(--border); padding-top: 12px; margin-top: 12px; }
+#tab-tracker .log-head { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+#tab-tracker .log-entry { display: flex; gap: 10px; margin-bottom: 5px; }
+#tab-tracker .log-date { font-family: var(--mono); font-size: 11px; color: var(--text3); white-space: nowrap; padding-top: 1px; }
+#tab-tracker .log-text { font-size: 12px; color: var(--text2); }
+#tab-tracker .log-input-row { display: flex; gap: 6px; margin-top: 8px; }
+#tab-tracker .log-input { flex: 1; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 6px; padding: 6px 10px; color: var(--text); font-size: 12px; font-family: var(--sans); outline: none; }
+#tab-tracker .log-input:focus { border-color: var(--border2); }
+#tab-tracker .btn-log { background: var(--surface3); border: 0.5px solid var(--border2); color: var(--text2); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 11px; cursor: pointer; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+#tab-tracker .btn-log:hover { color: var(--text); border-color: var(--border2); }
+
+/* icon buttons */
+#tab-tracker .icon-btn { background: none; border: 0.5px solid var(--border); border-radius: 5px; padding: 4px 8px; cursor: pointer; font-size: 11px; font-family: var(--mono); color: var(--text2); transition: all 0.15s; white-space: nowrap; }
+#tab-tracker .icon-btn:hover { color: var(--text); border-color: var(--border2); }
+#tab-tracker .icon-btn.done-btn:hover { color: var(--accent); border-color: var(--accent-border); }
+#tab-tracker .icon-btn.edit-btn:hover { color: var(--blue); border-color: rgba(96,165,250,0.3); }
+#tab-tracker .icon-btn.del-btn:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
+#tab-tracker .icon-btn.undone-btn:hover { color: var(--amber); border-color: rgba(251,191,36,0.3); }
+
+/* meta */
+#tab-tracker .ticket-meta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+#tab-tracker .meta-item { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+#tab-tracker .meta-item span { color: var(--text2); }
+#tab-tracker .meta-item.overdue span { color: var(--red); }
+
+/* filter bar */
+#tab-tracker .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+#tab-tracker .filter-btn { background: var(--surface); border: 0.5px solid var(--border); color: var(--text2); padding: 5px 12px; border-radius: 6px; font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.15s; }
+#tab-tracker .filter-btn:hover, #tab-tracker .filter-btn.active { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+#tab-tracker .filter-btn.active { border-color: var(--accent-border); color: var(--accent); }
+#tab-tracker .empty { text-align: center; padding: 48px 0; color: var(--text3); font-family: var(--mono); font-size: 12px; }
+
+/* ══════════ QA TRACKER MODAL (scoped to #qt-modal-overlay) ══════════ */
+#qt-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 24px; }
+#qt-modal-overlay.open { display: flex; }
+#qt-modal-overlay .modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 12px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+#qt-modal-overlay h2 { font-family: var(--mono); font-size: 14px; font-weight: 500; margin-bottom: 20px; color: var(--text); }
+#qt-modal-overlay .form-row { margin-bottom: 14px; }
+#qt-modal-overlay .form-row label { display: block; font-size: 11px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+#qt-modal-overlay .form-input, #qt-modal-overlay .form-select, #qt-modal-overlay .form-textarea { width: 100%; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-size: 13px; font-family: var(--sans); outline: none; transition: border-color 0.15s; }
+#qt-modal-overlay .form-input:focus, #qt-modal-overlay .form-select:focus, #qt-modal-overlay .form-textarea:focus { border-color: var(--border2); }
+#qt-modal-overlay .form-select option { background: var(--surface2); }
+#qt-modal-overlay .form-textarea { resize: vertical; min-height: 70px; }
+#qt-modal-overlay .form-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#qt-modal-overlay .modules-section { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 8px; padding: 12px; }
+#qt-modal-overlay .btn-add-mod { background: none; border: 0.5px dashed var(--border2); border-radius: 6px; color: var(--text3); padding: 5px 10px; font-size: 11px; font-family: var(--mono); cursor: pointer; width: 100%; margin-top: 4px; transition: color 0.15s, border-color 0.15s; }
+#qt-modal-overlay .btn-add-mod:hover { color: var(--text2); border-color: var(--text3); }
+#qt-modal-overlay .btn-remove-mod { background: none; border: none; color: var(--text3); cursor: pointer; padding: 0 4px; font-size: 14px; transition: color 0.15s; }
+#qt-modal-overlay .btn-remove-mod:hover { color: var(--red); }
+#qt-modal-overlay .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+#qt-modal-overlay .btn-cancel { background: none; border: 0.5px solid var(--border); color: var(--text2); padding: 8px 16px; border-radius: 7px; font-family: var(--mono); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+#qt-modal-overlay .btn-cancel:hover { border-color: var(--border2); color: var(--text); }
+#qt-modal-overlay .btn-save { background: var(--accent); color: #0a0a0a; border: none; padding: 8px 20px; border-radius: 7px; font-family: var(--mono); font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+#qt-modal-overlay .btn-save:hover { opacity: 0.85; }
 
 /* ── LOG AREA ── */
 .log-area { margin-top: 16px; }
@@ -241,9 +348,166 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+/* ════════════════════════════════════════════════════════════════
+   CYBERPUNK SKIN — override layer (appended last so it wins the cascade)
+═══════════════════════════════════════════════════════════════════ */
+
+/* headings + display font */
+h1, h2 { font-family: var(--display); letter-spacing: 0.04em; }
+
+/* NAV — translucent neon bar */
+.nav {
+  background: rgba(10,10,18,0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border2);
+  box-shadow: 0 1px 0 rgba(255,61,127,0.25), 0 6px 24px rgba(0,0,0,0.5);
+  height: 50px; gap: 4px;
+}
+.nav-logo {
+  font-family: var(--display); font-weight: 900; font-size: 15px;
+  background: var(--sunset); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--accent);
+  text-shadow: none; letter-spacing: 0.12em;
+}
+.nav-tab { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: 11.5px; border: 1px solid transparent; border-radius: 4px; }
+.nav-tab:hover { background: rgba(45,226,255,0.06); color: var(--blue); }
+.nav-tab.active {
+  color: #fff; background: var(--accent-dim);
+  border-color: var(--accent-border);
+  box-shadow: var(--glow-pink); text-shadow: var(--glow-pink);
+}
+.nav-tab.soon { opacity: 0.5; }
+
+/* CARD — terminal frame */
+.card {
+  background: linear-gradient(180deg, rgba(21,21,31,0.9), rgba(15,15,26,0.9));
+  border: 1px solid var(--border2); border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 8px 30px rgba(0,0,0,0.45);
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--sunset); opacity: 0.8;
+}
+
+/* SECTION TITLE — cyan terminal label */
+.section-title { color: var(--blue); text-shadow: var(--glow-cyan); position: relative; padding-left: 14px; }
+.section-title::before { content: '▸'; position: absolute; left: 0; color: var(--accent); text-shadow: var(--glow-pink); }
+
+/* INPUTS */
+input[type=text], input[type=password], input[type=email], select, textarea {
+  background: rgba(8,8,16,0.7); border: 1px solid var(--border2); border-radius: 5px;
+  font-family: var(--mono); color: var(--text);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent); box-shadow: var(--glow-pink); outline: none;
+}
+label { color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; }
+
+/* BUTTONS — neon */
+.btn { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; border-radius: 6px; }
+.btn-run { background: var(--sunset); color: #0a0a0f; box-shadow: var(--glow-pink); border: none; }
+.btn-run:hover { filter: brightness(1.1); box-shadow: 0 0 16px rgba(255,61,127,0.7); }
+.btn-run:disabled { background: var(--surface3); color: var(--text3); box-shadow: none; filter: none; }
+.btn-stop { border: 1px solid var(--red); color: var(--red); background: none; box-shadow: 0 0 8px rgba(255,77,109,0.25) inset; }
+.btn-stop:hover { background: var(--red-dim); box-shadow: 0 0 12px rgba(255,77,109,0.4); }
+
+/* TOGGLES + ENV PRESETS — gradient when active */
+.tog, .env-preset { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.tog.active { background: var(--sunset); border-color: transparent; color: #0a0a0f; box-shadow: var(--glow-pink); }
+.tog.active-green { background: var(--blue); border-color: transparent; color: #0a0a0f; box-shadow: var(--glow-cyan); }
+.env-preset.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); box-shadow: var(--glow-pink); }
+.tog-rand.active { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); box-shadow: var(--glow-cyan); }
+
+/* LOG PANEL — black terminal w/ cyan glow */
+.log-panel {
+  background: #05050a; border: 1px solid var(--border2); border-radius: 6px;
+  box-shadow: inset 0 0 24px rgba(45,226,255,0.05), 0 0 0 1px rgba(45,226,255,0.06);
+  font-family: var(--mono);
+}
+.log-line.success { color: var(--accent); text-shadow: 0 0 6px rgba(255,61,127,0.4); }
+.log-line.info { color: var(--blue); }
+
+/* STEP CARDS — neon states */
+.step-card { background: rgba(8,8,16,0.6); border: 1px solid var(--border2); border-radius: 6px; }
+.step-card.running { border-color: var(--blue); box-shadow: var(--glow-cyan); }
+.step-card.running .step-label { color: var(--blue); }
+.step-card.done { border-color: var(--accent-border); box-shadow: 0 0 8px rgba(255,61,127,0.25); }
+.step-card.done .step-label { color: var(--accent); }
+.step-num { color: var(--blue); }
+
+/* RESULT CARD */
+.result-card { background: rgba(15,15,26,0.9); border: 1px solid var(--accent-border); box-shadow: 0 0 18px rgba(255,61,127,0.15); }
+
+/* TABLES — terminal grid */
+.vehicle-table th, .ins-table th, .skipped-table th { color: var(--blue); }
+.ins-table th { background: rgba(45,226,255,0.06); }
+.vehicle-header { background: linear-gradient(180deg, rgba(29,29,43,0.9), rgba(21,21,31,0.9)); border-color: var(--border2); }
+.vehicle-reg { color: var(--accent); text-shadow: var(--glow-pink); }
+.ins-table .allow-yes { color: var(--accent); }
+.stat-chip { background: rgba(8,8,16,0.6); border-color: var(--border2); }
+
+/* ── TRACKER tab cyberpunk overrides ── */
+#tab-tracker .header-left h1 { font-family: var(--display); font-weight: 900; background: var(--sunset); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+#tab-tracker .btn-add { background: var(--sunset); color: #0a0a0f; box-shadow: var(--glow-pink); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+#tab-tracker .btn-add:hover { filter: brightness(1.1); }
+#tab-tracker .stat { background: linear-gradient(180deg, rgba(21,21,31,0.9), rgba(15,15,26,0.9)); border: 1px solid var(--border2); position: relative; overflow: hidden; }
+#tab-tracker .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: var(--sunset); opacity:0.7; }
+#tab-tracker .stat-val.green { color: var(--accent); text-shadow: var(--glow-pink); }
+#tab-tracker .stat-val.blue { color: var(--blue); text-shadow: var(--glow-cyan); }
+#tab-tracker .ticket { background: linear-gradient(180deg, rgba(21,21,31,0.85), rgba(15,15,26,0.85)); border: 1px solid var(--border2); }
+#tab-tracker .ticket:hover { border-color: var(--accent-border); box-shadow: 0 0 16px rgba(255,61,127,0.12); }
+#tab-tracker .ticket.blocked { border-left: 2px solid var(--red); }
+#tab-tracker .filter-btn { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+#tab-tracker .filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); box-shadow: var(--glow-pink); }
+#tab-tracker .progress-bar-fill { background: var(--sunset); }
+#tab-tracker .progress-bar-fill.low { background: var(--red); }
+#tab-tracker .progress-bar-fill.medium { background: var(--amber); }
+#tab-tracker .section-head { color: var(--blue); }
+#tab-tracker .ticket-title { font-weight: 500; }
+
+/* ── NOTES (tracker) ── */
+#tab-tracker .notes-section { border-top: 0.5px solid var(--border); padding-top: 12px; margin-top: 12px; }
+#tab-tracker .notes-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+#tab-tracker .notes-head .lbl { font-family: var(--mono); font-size: 10px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; }
+#tab-tracker .note { background: rgba(8,8,16,0.5); border: 1px solid var(--border); border-left: 2px solid var(--accent); border-radius: 6px; padding: 8px 10px; margin-bottom: 7px; }
+#tab-tracker .note-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+#tab-tracker .note-body { font-size: 12px; color: var(--text2); white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+#tab-tracker .note-actions { display: flex; gap: 6px; margin-top: 6px; }
+#tab-tracker .note-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 4px; }
+#tab-tracker .note-editor { margin-top: 8px; display: none; }
+#tab-tracker .note-editor.open { display: block; }
+#tab-tracker .note-editor input, #tab-tracker .note-editor textarea {
+  width: 100%; background: rgba(8,8,16,0.7); border: 0.5px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; color: var(--text); font-size: 12px; font-family: var(--mono); outline: none; margin-bottom: 6px;
+}
+#tab-tracker .note-editor textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+#tab-tracker .note-editor input:focus, #tab-tracker .note-editor textarea:focus { border-color: var(--accent); box-shadow: var(--glow-pink); }
+#tab-tracker .log-del, #tab-tracker .note-del, #tab-tracker .note-edit, #tab-tracker .note-add-btn, #tab-tracker .note-save, #tab-tracker .note-cancel {
+  background: none; border: 0.5px solid var(--border); border-radius: 5px; padding: 3px 9px; cursor: pointer;
+  font-size: 10px; font-family: var(--mono); color: var(--text2); transition: all 0.15s; white-space: nowrap;
+}
+#tab-tracker .note-add-btn:hover, #tab-tracker .note-save:hover { color: var(--accent); border-color: var(--accent-border); box-shadow: var(--glow-pink); }
+#tab-tracker .note-edit:hover { color: var(--blue); border-color: rgba(45,226,255,0.4); }
+#tab-tracker .note-del:hover, #tab-tracker .log-del:hover { color: var(--red); border-color: rgba(255,77,109,0.4); }
+#tab-tracker .log-entry { align-items: center; }
+#tab-tracker .log-entry .log-text { flex: 1; }
+#tab-tracker .log-del { padding: 1px 7px; opacity: 0; transition: opacity 0.15s; }
+#tab-tracker .log-entry:hover .log-del { opacity: 1; }
+
+/* MODAL — terminal frame */
+#qt-modal-overlay .modal { border: 1px solid var(--accent-border); box-shadow: 0 0 40px rgba(255,61,127,0.2), 0 20px 60px rgba(0,0,0,0.7); position: relative; }
+#qt-modal-overlay .modal::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: var(--sunset); }
+#qt-modal-overlay h2 { font-family: var(--display); }
+#qt-modal-overlay .btn-save { background: var(--sunset); color: #0a0a0f; box-shadow: var(--glow-pink); }
+
+/* scrollbar neon */
+::-webkit-scrollbar-thumb { background: var(--border2); }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 </style>
 </head>
 <body>
+<div id="scanlines"></div>
 
 <!-- NAV -->
 <nav class="nav">
@@ -259,20 +523,24 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
 
 <!-- ════════════════════════════════════════════════════ QA TRACKER TAB -->
 <div id="tab-tracker" class="tab-panel active">
-  <div class="tracker-header">
-    <div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
       <h1>QA Ticket Tracker</h1>
-      <div class="date" id="tracker-date"></div>
+      <p id="dateStamp"></p>
     </div>
-    <button class="btn btn-run" onclick="openModal()">+ New Ticket</button>
+    <button class="btn-add" onclick="openModal()">+ New Ticket</button>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-box blue"><div class="n" id="stat-active">0</div><div class="l">Active</div></div>
-    <div class="stat-box red"><div class="n" id="stat-blocked">0</div><div class="l">Blocked</div></div>
-    <div class="stat-box green"><div class="n" id="stat-completed">0</div><div class="l">Completed</div></div>
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Active</div><div class="stat-val blue" id="stat-active">0</div></div>
+    <div class="stat"><div class="stat-label">Blocked</div><div class="stat-val red" id="stat-blocked">0</div></div>
+    <div class="stat"><div class="stat-label">Completed</div><div class="stat-val green" id="stat-done">0</div></div>
   </div>
 
+  <!-- Filter bar -->
   <div class="filter-bar">
     <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
     <button class="filter-btn" onclick="setFilter('todo',this)">To Do</button>
@@ -281,14 +549,13 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
     <button class="filter-btn" onclick="setFilter('high',this)">High Priority</button>
   </div>
 
-  <div class="tickets-section">
-    <h2>Active Tickets</h2>
-    <div id="tickets-active"></div>
-  </div>
-  <div class="tickets-section">
-    <h2>Completed</h2>
-    <div id="tickets-completed"></div>
-  </div>
+  <!-- Active tickets -->
+  <div class="section-head">Active <span class="section-badge" id="active-count">0</span></div>
+  <div id="active-list"></div>
+
+  <!-- Completed tickets -->
+  <div class="section-head" style="margin-top:36px;">Completed <span class="section-badge" id="done-count">0</span></div>
+  <div id="done-list"></div>
 </div>
 
 <!-- ════════════════════════════════════════════════════ ESTM TAB -->
@@ -493,91 +760,86 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════ MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModalIfBg(event)">
+<!-- ════════════════════════════════════════════════════ QA TRACKER MODAL -->
+<div id="qt-modal-overlay" onclick="closeOnBg(event)">
   <div class="modal">
-    <div class="modal-header">
-      <h2 id="modal-title">New Ticket</h2>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-
-    <div class="form-row cols2">
-      <div>
-        <label>Ticket ID</label>
-        <input type="text" id="m-id" placeholder="QA-001">
-      </div>
-      <div>
-        <label>Type</label>
-        <select id="m-type">
-          <option value="Bug">Bug</option>
-          <option value="Feature">Feature</option>
-          <option value="Task">Task</option>
-          <option value="Investigation">Investigation</option>
-        </select>
-      </div>
-    </div>
+    <h2 id="modalTitle">New Ticket</h2>
+    <input type="hidden" id="editId">
 
     <div class="form-row">
-      <div>
-        <label>Title</label>
-        <input type="text" id="m-title" placeholder="Short description of the ticket">
-      </div>
+      <label>Ticket ID</label>
+      <input class="form-input" id="f-id" placeholder="e.g. ZURICH-42" />
     </div>
-
-    <div class="form-row cols2">
-      <div>
-        <label>Priority</label>
-        <select id="m-priority">
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
+    <div class="form-row">
+      <label>Title</label>
+      <input class="form-input" id="f-title" placeholder="Short description of the ticket" />
+    </div>
+    <div class="form-cols">
+      <div class="form-row">
+        <label>Type</label>
+        <select class="form-select" id="f-type">
+          <option value="task">Task</option>
+          <option value="story">Story</option>
+          <option value="bug">Bug</option>
+          <option value="subtask">Sub-task</option>
         </select>
       </div>
-      <div>
+      <div class="form-row">
+        <label>Priority</label>
+        <select class="form-select" id="f-priority">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-cols">
+      <div class="form-row">
         <label>Status</label>
-        <select id="m-status">
+        <select class="form-select" id="f-status">
           <option value="todo">To Do</option>
           <option value="inprogress">In Progress</option>
           <option value="blocked">Blocked</option>
-          <option value="completed">Completed</option>
         </select>
       </div>
-    </div>
-
-    <div class="form-row cols2">
-      <div>
+      <div class="form-row">
         <label>Environment</label>
-        <input type="text" id="m-env" placeholder="e.g. sit2, uat3">
+        <input class="form-input" id="f-env" placeholder="e.g. SIT3, UAT, PREPROD" />
       </div>
-      <div>
+    </div>
+    <div class="form-cols">
+      <div class="form-row">
         <label>Module / Project</label>
-        <input type="text" id="m-module" placeholder="e.g. Insurance, eSTM">
+        <input class="form-input" id="f-module" placeholder="e.g. Zurich Insurance" />
       </div>
-    </div>
-
-    <div class="form-row">
-      <div>
+      <div class="form-row">
         <label>Target Date</label>
-        <input type="text" id="m-date" placeholder="e.g. 2026-06-15">
+        <input class="form-input" type="date" id="f-target" />
       </div>
     </div>
-
-    <div class="form-row" id="m-blocked-wrap" style="display:none;">
-      <div>
-        <label>Blocked Reason</label>
-        <input type="text" id="m-blocked" placeholder="Why is this blocked?">
-      </div>
+    <div class="form-row" id="blocked-reason-row" style="display:none">
+      <label>Blocked Reason</label>
+      <input class="form-input" id="f-blocked" placeholder="Why is this blocked?" />
     </div>
 
-    <div class="modal-section">
-      <div class="modal-section-title">Progress Modules</div>
-      <div class="modules-grid" id="m-modules"></div>
+    <!-- Progress modules -->
+    <div class="form-row">
+      <label>Progress — modules</label>
+      <div class="modules-section">
+        <div style="display:grid;grid-template-columns:1fr 70px 70px 24px;gap:8px;margin-bottom:6px;padding-bottom:6px;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">MODULE NAME</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">DONE TS</span>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">TOTAL TS</span>
+          <span></span>
+        </div>
+        <div id="mod-rows"></div>
+        <button class="btn-add-mod" onclick="addModRow()">+ add module</button>
+      </div>
     </div>
 
     <div class="modal-footer">
-      <button class="btn-danger" id="m-delete-btn" style="display:none;" onclick="deleteTicket()">Delete</button>
-      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveTicket()">Save</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveTicket()">Save Ticket</button>
     </div>
   </div>
 </div>
@@ -980,245 +1242,431 @@ function renderInsuranceResults(data) {
   }
 }
 
-// ════════════════════════════════════════ QA TRACKER
-const MODULES = [
-  'Login','Dashboard','Insurance','eSTM','STMS','Jom Check','BMK','SSM','Reports','Admin','Profile','Notifications','Search','Export','API'
-];
-
+// ════════════════════════════════════════ QA TRACKER (ported from qa-tracker_1.html)
+const STORE_KEY = 'qa_tracker_v2';
 let tickets = [];
-let editingId = null;
-let activeFilter = 'all';
+let filter = 'all';
 
-function loadTickets() {
-  try { tickets = JSON.parse(localStorage.getItem('qa_tickets') || '[]'); } catch { tickets = []; }
+// ── Persistence ──
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(tickets)); }
+function load() {
+  try { tickets = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { tickets = []; }
   if (!tickets.length) tickets = sampleData();
-  renderTickets();
-}
-
-function saveTickets() {
-  localStorage.setItem('qa_tickets', JSON.stringify(tickets));
+  render();
 }
 
 function sampleData() {
   return [
     {
-      id: 'QA-001', title: 'Insurance quote page not loading on sit3', type: 'Bug', priority: 'High', status: 'inprogress',
-      env: 'sit3', module: 'Insurance', date: '2026-06-10', blockedReason: '',
-      modules: { 'Login': 'done', 'Insurance': 'inprogress' }, createdAt: Date.now() - 80000000,
+      id: 'ZURICH-101', title: 'Insurance quote enquiry — EV & Petrol flow',
+      type: 'story', priority: 'high', status: 'inprogress',
+      env: 'SIT3', module: 'Zurich Insurance', target: '2026-05-30',
+      blockedReason: '',
+      modules: [
+        { name: 'eAuto', done: 68, total: 133 },
+        { name: 'Secarang', done: 23, total: 75 },
+        { name: 'CIBO', done: 4, total: 7 }
+      ],
+      logs: [{ date: '19 May', text: 'Completed EV vehicle type detection test cases' }],
+      done: false, createdDate: '2026-05-15'
     },
     {
-      id: 'QA-002', title: 'eSTM bypass URL — redirect fails after consent', type: 'Bug', priority: 'High', status: 'blocked',
-      env: 'uat2', module: 'eSTM', date: '2026-06-08', blockedReason: 'Waiting for backend fix from dev team',
-      modules: { 'eSTM': 'blocked' }, createdAt: Date.now() - 160000000,
-    },
-    {
-      id: 'QA-003', title: 'Verify payment modal on preprod1', type: 'Task', priority: 'Medium', status: 'todo',
-      env: 'preprod1', module: 'eSTM', date: '2026-06-12', blockedReason: '',
-      modules: {}, createdAt: Date.now() - 20000000,
-    },
+      id: 'STMS-055', title: 'Long email address UI layout bug',
+      type: 'bug', priority: 'medium', status: 'inprogress',
+      env: 'UAT', module: 'STMS', target: '2026-05-22',
+      blockedReason: '',
+      modules: [{ name: 'Overall', done: 3, total: 5 }],
+      logs: [],
+      done: false, createdDate: '2026-05-18'
+    }
   ];
 }
 
-function renderTickets() {
-  updateStats();
-  const active = document.getElementById('tickets-active');
-  const completed = document.getElementById('tickets-completed');
-  active.innerHTML = '';
-  completed.innerHTML = '';
-
-  const filtered = tickets.filter(t => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'high') return t.priority === 'High' && t.status !== 'completed';
-    return t.status === activeFilter;
-  });
-
-  const activeT = filtered.filter(t => t.status !== 'completed');
-  const completedT = filtered.filter(t => t.status === 'completed');
-
-  if (!activeT.length) active.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No active tickets.</div>';
-  activeT.forEach(t => active.appendChild(makeTicketCard(t)));
-
-  if (!completedT.length) completed.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">No completed tickets.</div>';
-  completedT.forEach(t => completed.appendChild(makeTicketCard(t)));
-}
-
-function updateStats() {
-  const active = tickets.filter(t => t.status !== 'completed' && t.status !== 'blocked').length;
-  const blocked = tickets.filter(t => t.status === 'blocked').length;
-  const completed = tickets.filter(t => t.status === 'completed').length;
-  document.getElementById('stat-active').textContent = active;
-  document.getElementById('stat-blocked').textContent = blocked;
-  document.getElementById('stat-completed').textContent = completed;
-}
-
-function makeTicketCard(t) {
-  const card = document.createElement('div');
-  card.className = 'ticket-card' + (t.status === 'completed' ? ' completed' : '');
-  card.onclick = () => openModal(t.id);
-
-  const modules = t.modules || {};
-  const mKeys = Object.keys(modules);
-  const done = mKeys.filter(k => modules[k] === 'done').length;
-  const total = mKeys.length;
-  const pct = total ? Math.round((done / total) * 100) : 0;
-
-  const priorityClass = { High: 'badge-prio-high', Medium: 'badge-prio-medium', Low: 'badge-prio-low' }[t.priority] || 'badge-prio-low';
-  const statusClass = { todo: 'badge-status-todo', inprogress: 'badge-status-inprogress', blocked: 'badge-status-blocked', completed: 'badge-status-completed' }[t.status] || 'badge-status-todo';
-  const statusLabel = { todo: 'To Do', inprogress: 'In Progress', blocked: 'Blocked', completed: 'Completed' }[t.status] || t.status;
-
-  card.innerHTML = `
-    <div class="ticket-top">
-      <div>
-        <div class="ticket-id">${escHtml(t.id)}</div>
-        <div class="ticket-title">${escHtml(t.title)}</div>
-      </div>
-      <div class="ticket-date">${escHtml(t.date || '')}</div>
-    </div>
-    <div class="ticket-meta">
-      <span class="badge badge-type">${escHtml(t.type)}</span>
-      <span class="badge ${priorityClass}">${escHtml(t.priority)}</span>
-      <span class="badge ${statusClass}">${escHtml(statusLabel)}</span>
-      ${t.env ? `<span class="ticket-env">${escHtml(t.env)}</span>` : ''}
-      ${t.module ? `<span style="font-size:11px;color:var(--text3)">${escHtml(t.module)}</span>` : ''}
-    </div>
-    ${t.blockedReason ? `<div class="blocked-reason">Blocked: ${escHtml(t.blockedReason)}</div>` : ''}
-    ${total > 0 ? `<div class="ticket-progress">
-      <div class="progress-label"><span>Modules</span><span>${done}/${total}</span></div>
-      <div class="progress-bar"><div class="progress-fill ${pct === 100 ? 'done' : ''}" style="width:${pct}%"></div></div>
-    </div>` : ''}
-  `;
-  return card;
-}
-
-function setFilter(f, btn) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTickets();
-}
-
-function openModal(id) {
-  editingId = id || null;
-  const overlay = document.getElementById('modal-overlay');
-  overlay.classList.add('open');
-  document.getElementById('modal-title').textContent = id ? 'Edit Ticket' : 'New Ticket';
-  document.getElementById('m-delete-btn').style.display = id ? 'block' : 'none';
-
-  // Build modules
-  const modulesGrid = document.getElementById('m-modules');
-  modulesGrid.innerHTML = '';
-  MODULES.forEach(m => {
-    const div = document.createElement('div');
-    div.className = 'module-item';
-    div.innerHTML = `
-      <input type="checkbox" id="mod-${m}" value="${m}">
-      <label for="mod-${m}" style="margin:0;cursor:pointer;">${escHtml(m)}</label>
-      <span class="module-status">
-        <select id="mod-status-${m}" style="width:auto;">
-          <option value="todo">To Do</option>
-          <option value="inprogress">In Progress</option>
-          <option value="done">Done</option>
-          <option value="blocked">Blocked</option>
-        </select>
-      </span>
-    `;
-    modulesGrid.appendChild(div);
-  });
-
-  if (id) {
-    const t = tickets.find(x => x.id === id);
-    if (!t) return;
-    document.getElementById('m-id').value = t.id;
-    document.getElementById('m-title').value = t.title;
-    document.getElementById('m-type').value = t.type;
-    document.getElementById('m-priority').value = t.priority;
-    document.getElementById('m-status').value = t.status;
-    document.getElementById('m-env').value = t.env || '';
-    document.getElementById('m-module').value = t.module || '';
-    document.getElementById('m-date').value = t.date || '';
-    document.getElementById('m-blocked').value = t.blockedReason || '';
-    document.getElementById('m-blocked-wrap').style.display = t.status === 'blocked' ? 'grid' : 'none';
-    const mods = t.modules || {};
-    Object.entries(mods).forEach(([m, s]) => {
-      const cb = document.getElementById('mod-' + m);
-      if (cb) { cb.checked = true; document.getElementById('mod-status-' + m).value = s; }
-    });
+// ── Modal ──
+let editMode = false;
+function openModal(ticketId) {
+  editMode = !!ticketId;
+  document.getElementById('modalTitle').textContent = editMode ? 'Edit Ticket' : 'New Ticket';
+  document.getElementById('editId').value = ticketId || '';
+  clearForm();
+  if (editMode) {
+    const t = tickets.find(x => x.id === ticketId);
+    if (t) populateForm(t);
   } else {
-    document.getElementById('m-id').value = 'QA-' + String(tickets.length + 1).padStart(3,'0');
-    document.getElementById('m-title').value = '';
-    document.getElementById('m-type').value = 'Bug';
-    document.getElementById('m-priority').value = 'Medium';
-    document.getElementById('m-status').value = 'todo';
-    document.getElementById('m-env').value = '';
-    document.getElementById('m-module').value = '';
-    document.getElementById('m-date').value = '';
-    document.getElementById('m-blocked').value = '';
-    document.getElementById('m-blocked-wrap').style.display = 'none';
+    addModRow();
   }
+  document.getElementById('f-status').dispatchEvent(new Event('change'));
+  document.getElementById('qt-modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('qt-modal-overlay').classList.remove('open'); }
+function closeOnBg(e) { if (e.target === document.getElementById('qt-modal-overlay')) closeModal(); }
 
-  document.getElementById('m-status').addEventListener('change', function() {
-    document.getElementById('m-blocked-wrap').style.display = this.value === 'blocked' ? 'grid' : 'none';
-  });
+function clearForm() {
+  ['f-id','f-title','f-env','f-module','f-target','f-blocked'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-type').value = 'task';
+  document.getElementById('f-priority').value = 'medium';
+  document.getElementById('f-status').value = 'todo';
+  document.getElementById('mod-rows').innerHTML = '';
+}
+function populateForm(t) {
+  document.getElementById('f-id').value = t.id;
+  document.getElementById('f-title').value = t.title;
+  document.getElementById('f-type').value = t.type;
+  document.getElementById('f-priority').value = t.priority;
+  document.getElementById('f-status').value = t.status;
+  document.getElementById('f-env').value = t.env || '';
+  document.getElementById('f-module').value = t.module || '';
+  document.getElementById('f-target').value = t.target || '';
+  document.getElementById('f-blocked').value = t.blockedReason || '';
+  document.getElementById('mod-rows').innerHTML = '';
+  (t.modules || []).forEach(m => addModRow(m.name, m.done, m.total));
 }
 
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-}
+document.getElementById('f-status').addEventListener('change', function() {
+  document.getElementById('blocked-reason-row').style.display = this.value === 'blocked' ? '' : 'none';
+});
 
-function closeModalIfBg(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
+function addModRow(name='', done='', total='') {
+  const row = document.createElement('div');
+  row.className = 'mod-row';
+  row.style.display = 'grid';
+  row.style.gridTemplateColumns = '1fr 70px 70px 24px';
+  row.style.gap = '8px';
+  row.style.marginBottom = '6px';
+  row.innerHTML = `
+    <input class="form-input mod-name" placeholder="Module name" value="${name}" style="padding:5px 8px;font-size:12px;" />
+    <input class="form-input mod-done" type="number" placeholder="0" value="${done}" min="0" style="padding:5px 8px;font-size:12px;" />
+    <input class="form-input mod-total" type="number" placeholder="0" value="${total}" min="0" style="padding:5px 8px;font-size:12px;" />
+    <button class="btn-remove-mod" onclick="this.parentElement.remove()">×</button>`;
+  document.getElementById('mod-rows').appendChild(row);
 }
 
 function saveTicket() {
-  const id    = document.getElementById('m-id').value.trim();
-  const title = document.getElementById('m-title').value.trim();
-  if (!id || !title) { alert('Ticket ID and title are required.'); return; }
+  const id = document.getElementById('f-id').value.trim();
+  const title = document.getElementById('f-title').value.trim();
+  if (!id || !title) { alert('Ticket ID and Title are required.'); return; }
 
-  const mods = {};
-  MODULES.forEach(m => {
-    const cb = document.getElementById('mod-' + m);
-    if (cb && cb.checked) mods[m] = document.getElementById('mod-status-' + m).value;
+  const modRows = document.querySelectorAll('#mod-rows .mod-row');
+  const modules = [];
+  modRows.forEach(r => {
+    const name = r.querySelector('.mod-name').value.trim();
+    const done = parseInt(r.querySelector('.mod-done').value) || 0;
+    const total = parseInt(r.querySelector('.mod-total').value) || 0;
+    if (name) modules.push({ name, done, total });
   });
 
-  const ticket = {
-    id,
-    title,
-    type:         document.getElementById('m-type').value,
-    priority:     document.getElementById('m-priority').value,
-    status:       document.getElementById('m-status').value,
-    env:          document.getElementById('m-env').value.trim(),
-    module:       document.getElementById('m-module').value.trim(),
-    date:         document.getElementById('m-date').value.trim(),
-    blockedReason: document.getElementById('m-blocked').value.trim(),
-    modules:      mods,
-    createdAt:    editingId ? (tickets.find(x => x.id === editingId)?.createdAt || Date.now()) : Date.now(),
+  const status = document.getElementById('f-status').value;
+  const ticketData = {
+    id, title,
+    type: document.getElementById('f-type').value,
+    priority: document.getElementById('f-priority').value,
+    status,
+    env: document.getElementById('f-env').value.trim(),
+    module: document.getElementById('f-module').value.trim(),
+    target: document.getElementById('f-target').value,
+    blockedReason: status === 'blocked' ? document.getElementById('f-blocked').value.trim() : '',
+    modules,
+    logs: [],
+    done: false,
+    createdDate: new Date().toISOString().slice(0,10)
   };
 
-  if (editingId) {
-    const idx = tickets.findIndex(x => x.id === editingId);
-    if (idx >= 0) tickets[idx] = ticket; else tickets.push(ticket);
+  if (editMode) {
+    const idx = tickets.findIndex(x => x.id === document.getElementById('editId').value);
+    if (idx > -1) {
+      ticketData.logs = tickets[idx].logs;
+      ticketData.done = tickets[idx].done;
+      ticketData.createdDate = tickets[idx].createdDate || ticketData.createdDate;
+      tickets[idx] = ticketData;
+    }
   } else {
-    tickets.push(ticket);
+    if (tickets.find(x => x.id === id)) { alert('Ticket ID already exists.'); return; }
+    tickets.unshift(ticketData);
   }
-
-  saveTickets();
-  renderTickets();
-  closeModal();
+  save(); render(); closeModal();
 }
 
-function deleteTicket() {
-  if (!editingId) return;
+// ── Mark done / undone ──
+function markDone(id) {
+  const t = tickets.find(x => x.id === id);
+  if (t) { t.done = true; t.status = 'done'; t.completedDate = new Date().toISOString().slice(0,10); save(); render(); }
+}
+function markUndone(id) {
+  const t = tickets.find(x => x.id === id);
+  if (t) { t.done = false; t.status = 'inprogress'; t.completedDate = null; save(); render(); }
+}
+function deleteTicket(id) {
   if (!confirm('Delete this ticket?')) return;
-  tickets = tickets.filter(x => x.id !== editingId);
-  saveTickets();
-  renderTickets();
-  closeModal();
+  tickets = tickets.filter(x => x.id !== id);
+  save(); render();
+}
+
+// ── Log ──
+function addLog(id) {
+  const input = document.getElementById('log-input-' + id);
+  const text = input.value.trim();
+  if (!text) return;
+  const t = tickets.find(x => x.id === id);
+  if (!t) return;
+  const d = new Date();
+  const date = d.getDate() + ' ' + d.toLocaleString('default',{month:'short'});
+  t.logs.unshift({ date, text });
+  input.value = '';
+  save(); render();
+}
+
+function deleteLog(id, index) {
+  const t = tickets.find(x => x.id === id);
+  if (!t || !t.logs) return;
+  t.logs.splice(index, 1);
+  save(); render();
+}
+
+// ── Notes (per ticket: add / edit / delete) ──
+let noteEdit = { ticketId: null, noteId: null };
+
+function openNoteEditor(id) {
+  noteEdit = { ticketId: id, noteId: null };
+  const ed = document.getElementById('note-editor-' + id);
+  document.getElementById('note-title-' + id).value = '';
+  document.getElementById('note-body-' + id).value = '';
+  ed.classList.add('open');
+  document.getElementById('note-body-' + id).focus();
+}
+
+function cancelNote(id) {
+  noteEdit = { ticketId: null, noteId: null };
+  document.getElementById('note-editor-' + id).classList.remove('open');
+}
+
+function editNote(ticketId, noteId) {
+  const t = tickets.find(x => x.id === ticketId);
+  if (!t) return;
+  const n = (t.notes || []).find(x => x.id === noteId);
+  if (!n) return;
+  noteEdit = { ticketId, noteId };
+  const ed = document.getElementById('note-editor-' + ticketId);
+  document.getElementById('note-title-' + ticketId).value = n.title || '';
+  document.getElementById('note-body-' + ticketId).value = n.body || '';
+  ed.classList.add('open');
+  ed.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function saveNote(id) {
+  const t = tickets.find(x => x.id === id);
+  if (!t) return;
+  if (!t.notes) t.notes = [];
+  const title = document.getElementById('note-title-' + id).value.trim();
+  const body  = document.getElementById('note-body-' + id).value.trim();
+  if (!title && !body) { alert('Write a title or note body first.'); return; }
+  const d = new Date();
+  const stamp = d.getDate() + ' ' + d.toLocaleString('default',{month:'short'}) + ' ' + d.getFullYear();
+
+  if (noteEdit.ticketId === id && noteEdit.noteId) {
+    const n = t.notes.find(x => x.id === noteEdit.noteId);
+    if (n) { n.title = title; n.body = body; n.date = stamp + ' (edited)'; }
+  } else {
+    t.notes.unshift({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), title, body, date: stamp });
+  }
+  noteEdit = { ticketId: null, noteId: null };
+  save(); render();
+}
+
+function deleteNote(ticketId, noteId) {
+  if (!confirm('Delete this note?')) return;
+  const t = tickets.find(x => x.id === ticketId);
+  if (!t || !t.notes) return;
+  t.notes = t.notes.filter(n => n.id !== noteId);
+  save(); render();
+}
+
+// ── Filter ──
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('#tab-tracker .filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── Progress calc ──
+function calcProgress(modules) {
+  if (!modules || !modules.length) return { pct: 0, totalDone: 0, totalAll: 0 };
+  const totalDone = modules.reduce((a,m) => a + (m.done||0), 0);
+  const totalAll  = modules.reduce((a,m) => a + (m.total||0), 0);
+  const pct = totalAll > 0 ? Math.round((totalDone / totalAll) * 100) : 0;
+  return { pct, totalDone, totalAll };
+}
+
+function barClass(pct) {
+  if (pct < 30) return 'low';
+  if (pct < 70) return 'medium';
+  return '';
+}
+
+// ── Render progress ──
+function renderProgress(t) {
+  const mods = t.modules || [];
+  if (!mods.length) return '';
+
+  const single = mods.length === 1;
+  if (single) {
+    const m = mods[0];
+    const total = m.total || 0;
+    const done  = m.done || 0;
+    const pct   = total > 0 ? Math.round((done/total)*100) : 0;
+    const bc    = barClass(pct);
+    return `
+      <div class="progress-section">
+        <div class="progress-label">
+          <span class="progress-name">Overall CR Testing Progress</span>
+          <span class="progress-pct">${done}/${total} (${pct}%)</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill ${bc}" style="width:${pct}%"></div></div>
+      </div>`;
+  }
+
+  const { pct: ovPct, totalDone, totalAll } = calcProgress(mods);
+  const bc = barClass(ovPct);
+  let modLines = mods.map(m => {
+    const total = m.total || 0;
+    const done  = m.done || 0;
+    const pct   = total > 0 ? Math.round((done/total)*100) : 0;
+    const mbc   = barClass(pct);
+    return `
+      <div>
+        <div class="progress-label" style="margin-bottom:3px;">
+          <span class="progress-sub">▸ ${m.name} — ${done}/${total} (${pct}%) <span style="color:var(--accent);font-size:10px;">PASS Only</span></span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill ${mbc}" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="progress-section">
+      <div class="progress-label" style="margin-bottom:6px;">
+        <span class="progress-name">Overall CR Testing Progress</span>
+        <span class="progress-pct">${totalDone}/${totalAll} (${ovPct}%)</span>
+      </div>
+      <div class="progress-bar-wrap" style="margin-bottom:10px;"><div class="progress-bar-fill ${bc}" style="width:${ovPct}%"></div></div>
+      <div class="progress-modules">${modLines}</div>
+    </div>`;
+}
+
+// ── Render ticket ──
+function renderTicket(t) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  let targetHtml = '';
+  if (t.target) {
+    const td = new Date(t.target);
+    const overdue = !t.done && td < today;
+    const diff = Math.round((td - today) / 86400000);
+    const label = overdue ? 'overdue by ' + Math.abs(diff) + 'd' : (diff === 0 ? 'due today' : 'due in ' + diff + 'd');
+    targetHtml = `<span class="meta-item ${overdue ? 'overdue' : ''}">Target: <span>${t.target} · ${label}</span></span>`;
+  }
+  const envHtml    = t.env    ? `<span class="tag tag-env">${t.env}</span>` : '';
+  const moduleHtml = t.module ? `<span class="tag tag-env">${t.module}</span>` : '';
+  const blockedHtml = (t.status === 'blocked' && t.blockedReason)
+    ? `<div class="blocked-note">⊘ Blocked: ${t.blockedReason}</div>` : '';
+
+  const logs = (t.logs||[]).slice(0,6).map((l, i) =>
+    `<div class="log-entry"><span class="log-date">${escHtml(l.date)}</span><span class="log-text">${escHtml(l.text)}</span><button class="log-del" title="Delete log" onclick="deleteLog('${t.id}',${i})">✕</button></div>`).join('');
+
+  const notes = (t.notes||[]).map(n =>
+    `<div class="note">
+       ${n.title ? `<div class="note-title">${escHtml(n.title)}</div>` : ''}
+       ${n.body ? `<div class="note-body">${escHtml(n.body)}</div>` : ''}
+       <div class="note-meta">${escHtml(n.date || '')}</div>
+       <div class="note-actions">
+         <button class="note-edit" onclick="editNote('${t.id}','${n.id}')">edit</button>
+         <button class="note-del" onclick="deleteNote('${t.id}','${n.id}')">delete</button>
+       </div>
+     </div>`).join('');
+
+  const actionBtns = t.done
+    ? `<button class="icon-btn undone-btn" onclick="markUndone('${t.id}')">↩ reopen</button>`
+    : `<button class="icon-btn done-btn" onclick="markDone('${t.id}')">✓ done</button>`;
+
+  return `
+    <div class="ticket ${t.done ? 'done' : ''} ${t.status === 'blocked' ? 'blocked' : ''}" id="ticket-${t.id}">
+      <div class="ticket-top">
+        <span class="ticket-id">${t.id}</span>
+        <span class="ticket-title">${t.title}</span>
+        <div class="ticket-actions">
+          ${actionBtns}
+          <button class="icon-btn edit-btn" onclick="openModal('${t.id}')">edit</button>
+          <button class="icon-btn del-btn" onclick="deleteTicket('${t.id}')">del</button>
+        </div>
+      </div>
+      <div class="ticket-tags">
+        <span class="tag tag-type-${t.type}">${t.type}</span>
+        <span class="tag tag-pri-${t.priority}">${t.priority}</span>
+        <span class="tag tag-status-${t.done ? 'done' : t.status}">${t.done ? 'done' : t.status.replace('inprogress','in progress')}</span>
+        ${envHtml}${moduleHtml}
+      </div>
+      <div class="ticket-meta">
+        ${t.createdDate ? `<span class="meta-item">Created: <span>${t.createdDate}</span></span>` : ''}
+        ${t.completedDate ? `<span class="meta-item">Completed: <span style="color:var(--accent)">${t.completedDate}</span></span>` : ''}
+        ${targetHtml}
+      </div>
+      ${blockedHtml}
+      ${renderProgress(t)}
+      <div class="log-section">
+        <div class="log-head">Daily Log</div>
+        <div id="logs-${t.id}">${logs || '<span style="font-size:11px;color:var(--text3);">No entries yet.</span>'}</div>
+        <div class="log-input-row">
+          <input class="log-input" id="log-input-${t.id}" placeholder="Add a progress note for today…" onkeydown="if(event.key==='Enter')addLog('${t.id}')" />
+          <button class="btn-log" onclick="addLog('${t.id}')">+ log</button>
+        </div>
+      </div>
+
+      <div class="notes-section">
+        <div class="notes-head">
+          <span class="lbl">Notes</span>
+          <button class="note-add-btn" onclick="openNoteEditor('${t.id}')">+ Add Note</button>
+        </div>
+        <div>${notes}</div>
+        <div class="note-editor" id="note-editor-${t.id}">
+          <input id="note-title-${t.id}" placeholder="Short title (optional)" />
+          <textarea id="note-body-${t.id}" placeholder="Write a note — short or long…"></textarea>
+          <div style="display:flex;gap:6px;">
+            <button class="note-save" onclick="saveNote('${t.id}')">Save Note</button>
+            <button class="note-cancel" onclick="cancelNote('${t.id}')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Main render ──
+function render() {
+  let active = tickets.filter(t => !t.done);
+  if (filter === 'todo') active = active.filter(t => t.status === 'todo');
+  else if (filter === 'inprogress') active = active.filter(t => t.status === 'inprogress');
+  else if (filter === 'blocked') active = active.filter(t => t.status === 'blocked');
+  else if (filter === 'high') active = active.filter(t => t.priority === 'high');
+
+  const done = tickets.filter(t => t.done);
+  const allActive = tickets.filter(t => !t.done);
+
+  document.getElementById('active-list').innerHTML = active.length
+    ? active.map(renderTicket).join('') : '<div class="empty">no tickets here</div>';
+  document.getElementById('done-list').innerHTML = done.length
+    ? done.map(renderTicket).join('') : '<div class="empty">no completed tickets yet</div>';
+
+  document.getElementById('active-count').textContent = allActive.length;
+  document.getElementById('done-count').textContent = done.length;
+
+  const blocked = allActive.filter(t => t.status === 'blocked').length;
+  document.getElementById('stat-active').textContent = allActive.length;
+  document.getElementById('stat-blocked').textContent = blocked;
+  document.getElementById('stat-done').textContent = done.length;
 }
 
 // ════════════════════════════════════════ INIT
-document.getElementById('tracker-date').textContent = new Date().toLocaleDateString('en-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+document.getElementById('dateStamp').textContent =
+  new Date().toLocaleDateString('en-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 initEstmSteps();
-loadTickets();
+load();
 </script>
 </body>
 </html>
