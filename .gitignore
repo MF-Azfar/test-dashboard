@@ -17,6 +17,10 @@ insurance/test-results/
 .env
 .env.local
 
+# Knowledge base — contains Jira token / API keys, NEVER commit
+data/
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -428,4 +428,261 @@ process.on('unhandledRejection', err => console.error('[unhandledRejection]', er
   console.log(`${fs.existsSync(p) ? '✅' : '❌'} ${label}: ${p}`)
 );
 
+// ── Knowledge Base persistence (local JSON file, server-side so the AI can read it) ──
+const DATA_DIR  = path.join(__dirname, 'data');
+const KB_FILE   = path.join(DATA_DIR, 'knowledge.json');
+
+function readKB() {
+  try {
+    if (fs.existsSync(KB_FILE)) return JSON.parse(fs.readFileSync(KB_FILE, 'utf8'));
+  } catch (e) { console.error('[KB] read error:', e.message); }
+  return { entries: [], settings: {} };
+}
+function writeKB(data) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(KB_FILE, JSON.stringify(data, null, 2), 'utf8');
+}
+
+// GET full knowledge base (entries + settings)
+app.get('/api/knowledge', (req, res) => {
+  res.json(readKB());
+});
+
+// POST to replace the whole knowledge base document
+app.post('/api/knowledge', (req, res) => {
+  try {
+    const { entries, settings } = req.body || {};
+    writeKB({
+      entries:  Array.isArray(entries) ? entries : [],
+      settings: settings && typeof settings === 'object' ? settings : {},
+      updatedAt: new Date().toISOString(),
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ── Jira integration (reads creds from the saved knowledge base) ─────────────
+function jiraConf() {
+  const s = readKB().settings || {};
+  if (!s.jiraDomain || !s.jiraEmail || !s.jiraToken) return null;
+  const host = s.jiraDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  return {
+    base: 'https://' + host,
+    auth: 'Basic ' + Buffer.from(s.jiraEmail + ':' + s.jiraToken).toString('base64'),
+  };
+}
+
+async function jiraSearch(conf, jql, fields = 'summary,status,issuetype', max = 50) {
+  const url = conf.base + '/rest/api/3/search/jql?jql=' + encodeURIComponent(jql) +
+              '&maxResults=' + max + '&fields=' + fields;
+  const r = await fetch(url, { headers: { Authorization: conf.auth, Accept: 'application/json' } });
+  if (!r.ok) throw new Error('Jira ' + r.status + ': ' + (await r.text()).slice(0, 300));
+  return (await r.json()).issues || [];
+}
+
+function mapIssue(conf, i) {
+  return {
+    key: i.key,
+    summary: i.fields.summary || '',
+    status: i.fields.status?.name || '',
+    statusCat: i.fields.status?.statusCategory?.key || 'new',
+    type: i.fields.issuetype?.name || '',
+    url: conf.base + '/browse/' + i.key,
+  };
+}
+
+app.get('/api/jira/me', async (req, res) => {
+  const conf = jiraConf();
+  if (!conf) return res.json({ ok: false, error: 'Jira not configured. Add domain, email & token in Knowledge Base → Settings.' });
+  try {
+    const r = await fetch(conf.base + '/rest/api/3/myself', { headers: { Authorization: conf.auth, Accept: 'application/json' } });
+    if (!r.ok) return res.json({ ok: false, error: 'Auth failed (' + r.status + '). Check email/token.' });
+    const m = await r.json();
+    res.json({ ok: true, displayName: m.displayName, accountId: m.accountId, email: m.emailAddress });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/jira/overview', async (req, res) => {
+  const conf = jiraConf();
+  if (!conf) return res.json({ ok: false, error: 'Jira not configured. Add domain, email & token in Knowledge Base → Settings.' });
+  try {
+    const meR = await fetch(conf.base + '/rest/api/3/myself', { headers: { Authorization: conf.auth, Accept: 'application/json' } });
+    if (!meR.ok) return res.json({ ok: false, error: 'Auth failed (' + meR.status + '). Check email/token.' });
+    const me = await meR.json();
+
+    const raised = await jiraSearch(conf, 'reporter = currentUser() AND created >= startOfDay() ORDER BY created DESC');
+    const assigned = await jiraSearch(conf, 'assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC');
+
+    // "Done/Closed today" — try Done+Closed, fall back to just Done if a status name is invalid
+    let doneCount = 0;
+    for (const jql of [
+      'status CHANGED TO ("Done","Closed") BY currentUser() DURING (startOfDay(), now())',
+      'status CHANGED TO ("Done") BY currentUser() DURING (startOfDay(), now())',
+    ]) {
+      try { doneCount = (await jiraSearch(conf, jql, 'summary', 50)).length; break; } catch (e) { /* try next */ }
+    }
+
+    res.json({
+      ok: true,
+      me: { displayName: me.displayName, accountId: me.accountId },
+      raisedToday: { count: raised.length, issues: raised.map(i => mapIssue(conf, i)) },
+      doneToday:   { count: doneCount },
+      assignedOpen:{ count: assigned.length, issues: assigned.map(i => mapIssue(conf, i)) },
+    });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+app.get('/api/jira/children', async (req, res) => {
+  const conf = jiraConf();
+  if (!conf) return res.json({ ok: false, error: 'Jira not configured.' });
+  const key = (req.query.key || '').toString().trim().toUpperCase();
+  if (!key) return res.json({ ok: false, error: 'Provide a ticket key, e.g. EAINT-8606.' });
+  try {
+    // parent issue info + its children (subtasks / child issues)
+    const parentR = await fetch(conf.base + '/rest/api/3/issue/' + encodeURIComponent(key) + '?fields=summary,status,issuetype',
+      { headers: { Authorization: conf.auth, Accept: 'application/json' } });
+    if (!parentR.ok) return res.json({ ok: false, error: 'Ticket ' + key + ' not found (' + parentR.status + ').' });
+    const parent = await parentR.json();
+    const children = await jiraSearch(conf, 'parent = "' + key + '" ORDER BY status ASC, created DESC', 'summary,status,issuetype', 100);
+    res.json({
+      ok: true,
+      parent: mapIssue(conf, parent),
+      children: children.map(i => mapIssue(conf, i)),
+    });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+// ── AI brain (Option A: Claude Code CLI headless — uses existing login, no API key) ──
+const CLAUDE_EXE = (() => {
+  const candidates = [
+    path.join(process.env.APPDATA || '', 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe'),
+    path.join(process.env.APPDATA || '', 'npm', 'claude.cmd'),
+  ];
+  return candidates.find(p => p && fs.existsSync(p)) || null;
+})();
+
+function callClaude(instruction, context, timeoutMs = 120000) {
+  return new Promise((resolve, reject) => {
+    if (!CLAUDE_EXE) return reject(new Error('Claude Code CLI not found. Install: npm i -g @anthropic-ai/claude-code, then log in.'));
+    const child = spawn(CLAUDE_EXE, ['-p', instruction, '--output-format', 'text'], { stdio: ['pipe', 'pipe', 'pipe'] });
+    let out = '', err = '';
+    const to = setTimeout(() => { try { child.kill(); } catch {} reject(new Error('AI timed out after ' + (timeoutMs/1000) + 's')); }, timeoutMs);
+    child.stdout.on('data', d => out += d);
+    child.stderr.on('data', d => err += d);
+    child.on('error', e => { clearTimeout(to); reject(e); });
+    child.stdin.write(context); child.stdin.end();
+    child.on('close', code => { clearTimeout(to); code === 0 ? resolve(out) : reject(new Error('AI exited ' + code + ': ' + err.slice(0, 300))); });
+  });
+}
+
+function parseJsonLoose(s) {
+  const t = s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  try { return JSON.parse(t); }
+  catch (e) { const m = t.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error('Could not parse AI output as JSON'); }
+}
+
+// Atlassian Document Format → plain text
+function adfToText(node) {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+  let s = '';
+  if (node.text) s += node.text;
+  if (Array.isArray(node.content)) s += node.content.map(adfToText).join('');
+  if (['paragraph', 'heading', 'listItem', 'blockquote'].includes(node.type)) s += '\n';
+  if (node.type === 'hardBreak') s += '\n';
+  return s;
+}
+
+// Full ticket detail
+app.get('/api/jira/issue', async (req, res) => {
+  const conf = jiraConf();
+  if (!conf) return res.json({ ok: false, error: 'Jira not configured.' });
+  const key = (req.query.key || '').toString().trim().toUpperCase();
+  if (!key) return res.json({ ok: false, error: 'Provide a ticket key.' });
+  try {
+    const r = await fetch(conf.base + '/rest/api/3/issue/' + encodeURIComponent(key) + '?fields=summary,description,status,issuetype',
+      { headers: { Authorization: conf.auth, Accept: 'application/json' } });
+    if (!r.ok) return res.json({ ok: false, error: 'Ticket ' + key + ' not found (' + r.status + ').' });
+    const i = await r.json();
+    res.json({
+      ok: true,
+      key: i.key,
+      summary: i.fields.summary || '',
+      description: adfToText(i.fields.description).replace(/\n{3,}/g, '\n\n').trim(),
+      status: i.fields.status?.name || '',
+      type: i.fields.issuetype?.name || '',
+      url: conf.base + '/browse/' + i.key,
+    });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+// Generate a test plan from a ticket
+app.post('/api/ai/plan', async (req, res) => {
+  const conf = jiraConf();
+  const key = (req.body?.key || '').toString().trim().toUpperCase();
+  if (!conf) return res.json({ ok: false, error: 'Jira not configured.' });
+  if (!key)  return res.json({ ok: false, error: 'Provide a ticket key.' });
+
+  try {
+    // 1. fetch ticket
+    const r = await fetch(conf.base + '/rest/api/3/issue/' + encodeURIComponent(key) + '?fields=summary,description,status,issuetype',
+      { headers: { Authorization: conf.auth, Accept: 'application/json' } });
+    if (!r.ok) return res.json({ ok: false, error: 'Ticket ' + key + ' not found (' + r.status + ').' });
+    const i = await r.json();
+    const ticket = {
+      key: i.key,
+      summary: i.fields.summary || '',
+      description: adfToText(i.fields.description).replace(/\n{3,}/g, '\n\n').trim(),
+    };
+
+    // 2. relevant knowledge base context
+    const kb = readKB().entries || [];
+    const relevant = kb.filter(e => ['Business Rules', 'Test Conventions', 'App Structure', 'Page Objects', 'Environment'].includes(e.category));
+    const kbText = relevant.length
+      ? relevant.map(e => `[${e.category}] ${e.title}: ${e.body}`).join('\n')
+      : '(no knowledge base entries yet)';
+
+    // 3. instruction + context
+    const instruction =
+      'You are a senior QA test analyst for the eAuto insurance platform (Malaysian vehicle insurance/registration). ' +
+      'Read the Jira ticket and knowledge base from stdin and produce a thorough manual+automation test plan. ' +
+      'Be careful and complete — the goal is to NOT let any bug slip through. ' +
+      'Output ONLY valid minified JSON (no markdown fences, no prose) with this exact schema: ' +
+      '{"ticket":string,"summary":string,"understanding":string,"scope":string,"outOfScope":string,' +
+      '"scenarios":[{"id":string,"title":string,"type":"positive|negative|edge","priority":"high|medium|low",' +
+      '"preconditions":string,"steps":[string],"expected":string,"testData":string}],' +
+      '"risks":[string],"openQuestions":[string]}. ' +
+      'Put any ambiguities or missing info from the ticket into openQuestions so a human can clarify before testing.';
+
+    const context =
+      `=== JIRA TICKET ${ticket.key} ===\nSummary: ${ticket.summary}\n\nDescription:\n${ticket.description || '(no description)'}\n\n` +
+      `=== KNOWLEDGE BASE ===\n${kbText}\n`;
+
+    const raw = await callClaude(instruction, context, 150000);
+    const plan = parseJsonLoose(raw);
+    plan.ticket = plan.ticket || ticket.key;
+    plan.summary = plan.summary || ticket.summary;
+    res.json({ ok: true, plan, ticketUrl: conf.base + '/browse/' + ticket.key });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
+// Persisted plans (draft/approved)
+const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
+function readPlans() { try { if (fs.existsSync(PLANS_FILE)) return JSON.parse(fs.readFileSync(PLANS_FILE, 'utf8')); } catch {} return { plans: {} }; }
+function writePlans(d) { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(PLANS_FILE, JSON.stringify(d, null, 2)); }
+
+app.get('/api/plans', (req, res) => res.json(readPlans()));
+app.post('/api/plans', (req, res) => {
+  try {
+    const { key, plan, status } = req.body || {};
+    if (!key) return res.json({ ok: false, error: 'key required' });
+    const all = readPlans();
+    all.plans[key] = { plan, status: status || 'draft', updatedAt: new Date().toISOString() };
+    writePlans(all);
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
 app.listen(PORT, () => console.log(`\n🚀 QA Platform → http://localhost:${PORT}\n`));

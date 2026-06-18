@@ -492,6 +492,62 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
 
 ::-webkit-scrollbar-thumb { background: var(--border2); }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* ── KNOWLEDGE BASE ── */
+.kb-entry { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.kb-entry-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.kb-entry-title { font-weight: 600; font-size: 14px; color: var(--text); }
+.kb-entry-cat { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-border); padding: 2px 8px; border-radius: 5px; white-space: nowrap; }
+.kb-entry-body { font-size: 13px; color: var(--text2); white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
+.kb-entry-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.kb-entry-tag { font-size: 10px; color: var(--text3); background: var(--surface3); border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; }
+.kb-entry-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+.kb-entry-actions { display: flex; gap: 6px; }
+.kb-mini-btn { background: var(--surface3); border: 1px solid var(--border2); border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 500; font-family: var(--sans); color: var(--text2); cursor: pointer; transition: all 0.13s; }
+.kb-mini-btn.edit:hover { color: var(--accent); border-color: var(--accent); }
+.kb-mini-btn.del:hover { color: var(--red); border-color: var(--red); }
+.kb-empty { text-align: center; padding: 40px 0; color: var(--text3); font-size: 13px; }
+
+/* ── JIRA ── */
+.jira-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 9px; margin-bottom: 8px; background: var(--surface2); transition: border-color 0.13s; }
+.jira-row:hover { border-color: var(--border2); }
+.jira-key { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.jira-key a { color: var(--accent); text-decoration: none; }
+.jira-key a:hover { text-decoration: underline; }
+.jira-summary { flex: 1; font-size: 13px; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jira-type { font-size: 10px; color: var(--text3); background: var(--surface3); border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
+.jira-status { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 5px; padding: 3px 9px; white-space: nowrap; }
+.jira-status.new  { color: var(--text2); background: var(--surface3); border: 1px solid var(--border2); }
+.jira-status.indeterminate { color: var(--blue); background: var(--blue-dim); border: 1px solid rgba(59,130,246,0.3); }
+.jira-status.done { color: var(--green); background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); }
+
+/* ── AI TEST PLAN ── */
+.plan-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.plan-field { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; }
+.plan-field .pf-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-bottom: 5px; }
+.plan-field .pf-val { font-size: 13px; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
+.scenario { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.scenario-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.scenario-id { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.scenario-title { font-weight: 600; font-size: 14px; flex: 1; min-width: 200px; }
+.pill { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 5px; }
+.pill.positive { color: var(--green); background: var(--green-dim); }
+.pill.negative { color: var(--red); background: var(--red-dim); }
+.pill.edge { color: var(--amber); background: var(--amber-dim); }
+.pill.high { color: var(--red); background: var(--red-dim); }
+.pill.medium { color: var(--amber); background: var(--amber-dim); }
+.pill.low { color: var(--text2); background: var(--surface3); }
+.scenario-steps { font-size: 12.5px; color: var(--text2); line-height: 1.6; margin: 6px 0; padding-left: 18px; }
+.scenario-steps li { margin-bottom: 3px; }
+.scenario-exp { font-size: 12.5px; color: var(--text); background: var(--green-dim); border-left: 3px solid var(--green); border-radius: 6px; padding: 7px 10px; margin-top: 6px; }
+.scenario-exp b { color: var(--green); }
+.scenario-data { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 6px; }
+.open-q { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3); border-radius: 9px; padding: 12px 14px; margin-bottom: 8px; }
+.open-q ul, .risks ul { padding-left: 18px; font-size: 13px; color: var(--text); line-height: 1.6; }
+.plan-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.plan-approved-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--green); background: var(--green-dim); border: 1px solid rgba(34,197,94,0.35); padding: 3px 10px; border-radius: 6px; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; display: inline-block; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -509,8 +565,16 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
     <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h6"/></svg></span>
     QA Tracker
   </button>
+  <button class="side-tab" onclick="switchTab('jira',this); loadJira();">
+    <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 2 2 12l10 10 10-10z"/><path d="M12 7 7 12l5 5 5-5z"/></svg></span>
+    Jira
+  </button>
 
   <div class="sidebar-group-label">Automations</div>
+  <button class="side-tab" onclick="switchTab('aiplans',this); loadApprovedPlans();">
+    <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><path d="M9 21h6"/></svg></span>
+    AI Test Plans
+  </button>
   <button class="side-tab" onclick="switchTab('estm',this)">
     <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
     eSTM Bypass
@@ -534,6 +598,12 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
   <button class="side-tab soon">
     <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></span>
     SSM <span class="soon-pill">soon</span>
+  </button>
+
+  <div class="sidebar-group-label">System</div>
+  <button class="side-tab" onclick="switchTab('knowledge',this)">
+    <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+    Knowledge Base
   </button>
 
   <div class="sidebar-foot">eAuto QA Platform · v1.0</div>
@@ -577,6 +647,77 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
   <!-- Completed tickets -->
   <div class="section-head" style="margin-top:36px;">Completed <span class="section-badge" id="done-count">0</span></div>
   <div id="done-list"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ JIRA TAB -->
+<div id="tab-jira" class="tab-panel">
+  <div class="page-head">
+    <h2>Jira</h2>
+    <p id="jira-conn">Connecting…</p>
+  </div>
+
+  <div id="jira-error" style="display:none;" class="card"></div>
+
+  <!-- Stats -->
+  <div class="stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;">
+    <div class="stat"><div class="stat-label">Raised Today</div><div class="stat-val blue" id="jira-raised">–</div></div>
+    <div class="stat"><div class="stat-label">Done / Closed Today</div><div class="stat-val green" id="jira-done">–</div></div>
+    <div class="stat"><div class="stat-label">My Open Issues</div><div class="stat-val" id="jira-open">–</div></div>
+  </div>
+
+  <!-- Raised today list -->
+  <div class="card">
+    <div class="section-title">Tickets You Raised Today</div>
+    <div id="jira-raised-list"><div class="kb-empty">Loading…</div></div>
+  </div>
+
+  <!-- Working on -->
+  <div class="card">
+    <div class="section-title">QA-Issues Under the Ticket You're Working On</div>
+    <div class="form-row cols2" style="margin-bottom:12px;">
+      <div>
+        <label>Ticket key</label>
+        <input type="text" id="jira-parent-key" placeholder="e.g. EAINT-8606" onkeydown="if(event.key==='Enter')loadChildren()">
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px;">
+        <button class="btn btn-run" onclick="loadChildren()">Load</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin:0;cursor:pointer;">
+          <input type="checkbox" id="jira-show-all" style="width:auto;" onchange="renderChildren()"> Show all statuses
+        </label>
+      </div>
+    </div>
+    <div id="jira-parent-info" style="font-size:12px;color:var(--text2);margin-bottom:10px;"></div>
+    <div id="jira-children"><div class="kb-empty">Enter a ticket key to see its QA-Issues (defaults to “To Do” + “Ready in 1st Env”).</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ AI TEST PLANS TAB -->
+<div id="tab-aiplans" class="tab-panel">
+  <div class="page-head">
+    <h2>AI Test Plans</h2>
+    <p>Give the AI a ticket — it studies it (with your Knowledge Base) and drafts a test plan. You review &amp; approve before any test code is written.</p>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Generate a Plan</div>
+    <div class="form-row cols2">
+      <div>
+        <label>Ticket key (Insurance)</label>
+        <input type="text" id="ai-key" placeholder="e.g. EAINT-11770" onkeydown="if(event.key==='Enter')generatePlan()">
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button class="btn btn-run" id="ai-gen-btn" onclick="generatePlan()">✦ Draft Test Plan</button>
+      </div>
+    </div>
+    <div id="ai-gen-status" style="font-size:12px;color:var(--text2);"></div>
+  </div>
+
+  <div id="ai-plan-view"></div>
+
+  <div class="card">
+    <div class="section-title">Approved Plans</div>
+    <div id="ai-approved-list"><div class="kb-empty">No approved plans yet.</div></div>
+  </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════ ESTM TAB -->
@@ -778,6 +919,137 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
     </div>
     <div class="stats-bar" id="ins-stats-bar"></div>
     <div id="ins-results-body"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ KNOWLEDGE BASE TAB -->
+<div id="tab-knowledge" class="tab-panel">
+  <div class="page-head">
+    <h2>Knowledge Base</h2>
+    <p>The system's memory. Everything here is what the AI will use to understand the app, write correct tests, and never lose context.</p>
+  </div>
+
+  <!-- Settings -->
+  <div class="card">
+    <div class="section-title">Settings &amp; Connections</div>
+    <div class="form-row cols2">
+      <div>
+        <label>AI Provider</label>
+        <select id="kb-ai-provider">
+          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="openai">OpenAI</option>
+        </select>
+      </div>
+      <div>
+        <label>AI API Key</label>
+        <div class="input-wrap">
+          <input type="password" id="kb-ai-key" placeholder="sk-... (stored locally on your machine)">
+          <button class="eye-btn" onclick="togglePwd('kb-ai-key',this)">👁</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row cols3">
+      <div>
+        <label>Jira Domain</label>
+        <input type="text" id="kb-jira-domain" placeholder="yourcompany.atlassian.net">
+      </div>
+      <div>
+        <label>Jira Email</label>
+        <input type="text" id="kb-jira-email" placeholder="you@modefair.com">
+      </div>
+      <div>
+        <label>Jira API Token</label>
+        <div class="input-wrap">
+          <input type="password" id="kb-jira-token" placeholder="Jira API token">
+          <button class="eye-btn" onclick="togglePwd('kb-jira-token',this)">👁</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row cols2">
+      <div>
+        <label>Allowed Environments (comma-separated, prod is blocked)</label>
+        <input type="text" id="kb-envs" placeholder="sit2, sit3, uat2, uat3, preprod1">
+      </div>
+      <div>
+        <label>Data-creating runs limit (per run)</label>
+        <input type="text" id="kb-data-limit" placeholder="2" value="2">
+      </div>
+    </div>
+    <div class="btn-actions">
+      <button class="btn btn-run" onclick="saveKnowledge()">Save Settings</button>
+      <span id="kb-save-status" style="font-size:12px;color:var(--text2);"></span>
+    </div>
+  </div>
+
+  <!-- Add entry -->
+  <div class="card">
+    <div class="section-title">Add Knowledge</div>
+    <div class="form-row cols2">
+      <div>
+        <label>Category</label>
+        <select id="kb-cat">
+          <option value="App Structure">App Structure</option>
+          <option value="Page Objects">Page Objects</option>
+          <option value="Business Rules">Business Rules</option>
+          <option value="Test Conventions">Test Conventions</option>
+          <option value="Environment">Environment</option>
+          <option value="Credentials">Credentials</option>
+          <option value="Past Bugs">Past Bugs</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Title</label>
+        <input type="text" id="kb-title" placeholder="Short label, e.g. 'Insurance blacklist rule'">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Details</label>
+        <textarea id="kb-body" rows="4" placeholder="Write anything the AI should remember — rules, steps, selectors, gotchas, links…"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Tags (comma-separated, optional)</label>
+        <input type="text" id="kb-tags" placeholder="insurance, blacklist, sit3">
+      </div>
+    </div>
+    <div class="btn-actions">
+      <button class="btn btn-run" id="kb-add-btn" onclick="addKnowledge()">+ Add Entry</button>
+      <button class="btn btn-stop" id="kb-cancel-edit" style="display:none;" onclick="cancelKbEdit()">Cancel Edit</button>
+    </div>
+  </div>
+
+  <!-- Browse -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="section-title" style="margin:0;">Stored Knowledge <span id="kb-count" style="color:var(--text3);font-weight:400;">(0)</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-stop btn-sm" onclick="exportKnowledge()">Export</button>
+        <button class="btn btn-stop btn-sm" onclick="document.getElementById('kb-import-file').click()">Import</button>
+        <input type="file" id="kb-import-file" accept="application/json" style="display:none" onchange="importKnowledge(event)">
+      </div>
+    </div>
+    <div class="form-row cols2" style="margin-bottom:14px;">
+      <div>
+        <input type="text" id="kb-search" placeholder="Search knowledge…" oninput="renderKnowledge()">
+      </div>
+      <div>
+        <select id="kb-filter-cat" onchange="renderKnowledge()">
+          <option value="">All categories</option>
+          <option>App Structure</option>
+          <option>Page Objects</option>
+          <option>Business Rules</option>
+          <option>Test Conventions</option>
+          <option>Environment</option>
+          <option>Credentials</option>
+          <option>Past Bugs</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div id="kb-list"></div>
   </div>
 </div>
 
@@ -1687,11 +1959,420 @@ function render() {
   document.getElementById('stat-done').textContent = done.length;
 }
 
+// ════════════════════════════════════════ KNOWLEDGE BASE
+let kbEntries = [];
+let kbSettings = {};
+let kbEditId = null;
+
+async function loadKnowledge() {
+  try {
+    const r = await fetch(SERVER + '/api/knowledge');
+    const data = await r.json();
+    kbEntries  = Array.isArray(data.entries) ? data.entries : [];
+    kbSettings = data.settings || {};
+  } catch (e) {
+    kbEntries = []; kbSettings = {};
+  }
+  applyKbSettings();
+  renderKnowledge();
+}
+
+function applyKbSettings() {
+  const s = kbSettings;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+  set('kb-ai-provider', s.aiProvider);
+  set('kb-ai-key',      s.aiKey);
+  set('kb-jira-domain', s.jiraDomain);
+  set('kb-jira-email',  s.jiraEmail);
+  set('kb-jira-token',  s.jiraToken);
+  set('kb-envs',        s.envs);
+  set('kb-data-limit',  s.dataLimit || '2');
+}
+
+function collectKbSettings() {
+  return {
+    aiProvider: document.getElementById('kb-ai-provider').value,
+    aiKey:      document.getElementById('kb-ai-key').value.trim(),
+    jiraDomain: document.getElementById('kb-jira-domain').value.trim(),
+    jiraEmail:  document.getElementById('kb-jira-email').value.trim(),
+    jiraToken:  document.getElementById('kb-jira-token').value.trim(),
+    envs:       document.getElementById('kb-envs').value.trim(),
+    dataLimit:  document.getElementById('kb-data-limit').value.trim() || '2',
+  };
+}
+
+async function persistKnowledge() {
+  kbSettings = collectKbSettings();
+  await fetch(SERVER + '/api/knowledge', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ entries: kbEntries, settings: kbSettings }),
+  });
+}
+
+async function saveKnowledge() {
+  await persistKnowledge();
+  const st = document.getElementById('kb-save-status');
+  st.textContent = '✓ Saved';
+  setTimeout(() => st.textContent = '', 2000);
+}
+
+async function addKnowledge() {
+  const title = document.getElementById('kb-title').value.trim();
+  const body  = document.getElementById('kb-body').value.trim();
+  const cat   = document.getElementById('kb-cat').value;
+  const tags  = document.getElementById('kb-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  if (!title && !body) { alert('Add a title or details first.'); return; }
+
+  if (kbEditId) {
+    const e = kbEntries.find(x => x.id === kbEditId);
+    if (e) { e.title = title; e.body = body; e.category = cat; e.tags = tags; e.updated = new Date().toISOString().slice(0,16).replace('T',' '); }
+    kbEditId = null;
+    document.getElementById('kb-add-btn').textContent = '+ Add Entry';
+    document.getElementById('kb-cancel-edit').style.display = 'none';
+  } else {
+    kbEntries.unshift({
+      id: 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      title, body, category: cat, tags,
+      created: new Date().toISOString().slice(0,16).replace('T',' '),
+    });
+  }
+  document.getElementById('kb-title').value = '';
+  document.getElementById('kb-body').value = '';
+  document.getElementById('kb-tags').value = '';
+  await persistKnowledge();
+  renderKnowledge();
+}
+
+function editKnowledge(id) {
+  const e = kbEntries.find(x => x.id === id);
+  if (!e) return;
+  kbEditId = id;
+  document.getElementById('kb-cat').value = e.category || 'Other';
+  document.getElementById('kb-title').value = e.title || '';
+  document.getElementById('kb-body').value = e.body || '';
+  document.getElementById('kb-tags').value = (e.tags || []).join(', ');
+  document.getElementById('kb-add-btn').textContent = 'Save Changes';
+  document.getElementById('kb-cancel-edit').style.display = '';
+  document.getElementById('kb-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelKbEdit() {
+  kbEditId = null;
+  document.getElementById('kb-title').value = '';
+  document.getElementById('kb-body').value = '';
+  document.getElementById('kb-tags').value = '';
+  document.getElementById('kb-add-btn').textContent = '+ Add Entry';
+  document.getElementById('kb-cancel-edit').style.display = 'none';
+}
+
+async function deleteKnowledge(id) {
+  if (!confirm('Delete this knowledge entry?')) return;
+  kbEntries = kbEntries.filter(x => x.id !== id);
+  await persistKnowledge();
+  renderKnowledge();
+}
+
+function renderKnowledge() {
+  const q   = (document.getElementById('kb-search').value || '').toLowerCase();
+  const cat = document.getElementById('kb-filter-cat').value;
+  const list = document.getElementById('kb-list');
+  let items = kbEntries.slice();
+  if (cat) items = items.filter(e => e.category === cat);
+  if (q) items = items.filter(e =>
+    (e.title||'').toLowerCase().includes(q) ||
+    (e.body||'').toLowerCase().includes(q) ||
+    (e.tags||[]).join(' ').toLowerCase().includes(q));
+
+  document.getElementById('kb-count').textContent = `(${kbEntries.length})`;
+
+  if (!items.length) {
+    list.innerHTML = '<div class="kb-empty">No knowledge entries yet. Add what the AI should remember about the app, rules, and conventions.</div>';
+    return;
+  }
+  list.innerHTML = items.map(e => `
+    <div class="kb-entry">
+      <div class="kb-entry-top">
+        <span class="kb-entry-title">${escHtml(e.title || '(untitled)')}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="kb-entry-cat">${escHtml(e.category || 'Other')}</span>
+          <div class="kb-entry-actions">
+            <button class="kb-mini-btn edit" onclick="editKnowledge('${e.id}')">edit</button>
+            <button class="kb-mini-btn del" onclick="deleteKnowledge('${e.id}')">delete</button>
+          </div>
+        </div>
+      </div>
+      ${e.body ? `<div class="kb-entry-body">${escHtml(e.body)}</div>` : ''}
+      ${(e.tags && e.tags.length) ? `<div class="kb-entry-tags">${e.tags.map(t => `<span class="kb-entry-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+      <div class="kb-entry-meta">${escHtml(e.updated ? 'Updated ' + e.updated : 'Added ' + (e.created||''))}</div>
+    </div>`).join('');
+}
+
+function exportKnowledge() {
+  const blob = new Blob([JSON.stringify({ entries: kbEntries, settings: kbSettings }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'knowledge-base-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importKnowledge(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (Array.isArray(data.entries)) kbEntries = data.entries;
+      if (data.settings) { kbSettings = data.settings; applyKbSettings(); }
+      await persistKnowledge();
+      renderKnowledge();
+      alert('Knowledge base imported.');
+    } catch (e) { alert('Invalid file: ' + e.message); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+// ════════════════════════════════════════ JIRA
+let jiraChildrenCache = [];
+const QA_DEFAULT_STATUSES = ['to do', 'ready in 1st env'];
+
+async function loadJira() {
+  const conn = document.getElementById('jira-conn');
+  const errBox = document.getElementById('jira-error');
+  errBox.style.display = 'none';
+  conn.textContent = 'Connecting…';
+  try {
+    const r = await fetch(SERVER + '/api/jira/overview');
+    const d = await r.json();
+    if (!d.ok) {
+      conn.textContent = 'Not connected.';
+      errBox.style.display = 'block';
+      errBox.innerHTML = `<div style="color:var(--red);font-size:13px;">⚠ ${escHtml(d.error)}</div>`;
+      ['jira-raised','jira-done','jira-open'].forEach(id => document.getElementById(id).textContent = '–');
+      document.getElementById('jira-raised-list').innerHTML = '';
+      return;
+    }
+    conn.innerHTML = `Connected as <strong style="color:var(--text);">${escHtml(d.me.displayName)}</strong> · <span style="color:var(--text3);">switch account in Knowledge Base → Settings</span>`;
+    document.getElementById('jira-raised').textContent = d.raisedToday.count;
+    document.getElementById('jira-done').textContent   = d.doneToday.count;
+    document.getElementById('jira-open').textContent    = d.assignedOpen.count;
+
+    const rl = document.getElementById('jira-raised-list');
+    rl.innerHTML = d.raisedToday.issues.length
+      ? d.raisedToday.issues.map(jiraRow).join('')
+      : '<div class="kb-empty">No tickets raised today.</div>';
+
+    // restore last working ticket
+    const saved = localStorage.getItem('jira_working_key');
+    if (saved && !document.getElementById('jira-parent-key').value) {
+      document.getElementById('jira-parent-key').value = saved;
+    }
+  } catch (e) {
+    conn.textContent = 'Connection error.';
+    errBox.style.display = 'block';
+    errBox.innerHTML = `<div style="color:var(--red);font-size:13px;">⚠ ${escHtml(e.message)}</div>`;
+  }
+}
+
+function jiraStatusClass(cat) {
+  if (cat === 'done') return 'done';
+  if (cat === 'indeterminate') return 'indeterminate';
+  return 'new';
+}
+
+function jiraRow(i, withPlan) {
+  return `<div class="jira-row">
+    <span class="jira-key"><a href="${escHtml(i.url)}" target="_blank">${escHtml(i.key)}</a></span>
+    <span class="jira-summary" title="${escHtml(i.summary)}">${escHtml(i.summary)}</span>
+    <span class="jira-type">${escHtml(i.type)}</span>
+    <span class="jira-status ${jiraStatusClass(i.statusCat)}">${escHtml(i.status)}</span>
+    ${withPlan ? `<button class="kb-mini-btn edit" onclick="planFromJira('${i.key}')">✦ Plan</button>` : ''}
+  </div>`;
+}
+
+function planFromJira(key) {
+  const aiTab = [...document.querySelectorAll('.side-tab')].find(t => /AI Test Plans/.test(t.textContent));
+  switchTab('aiplans', aiTab);
+  loadApprovedPlans();
+  document.getElementById('ai-key').value = key;
+  generatePlan();
+}
+
+async function loadChildren() {
+  const key = document.getElementById('jira-parent-key').value.trim().toUpperCase();
+  const box = document.getElementById('jira-children');
+  const info = document.getElementById('jira-parent-info');
+  if (!key) { box.innerHTML = '<div class="kb-empty">Enter a ticket key first.</div>'; return; }
+  localStorage.setItem('jira_working_key', key);
+  box.innerHTML = '<div class="kb-empty">Loading…</div>';
+  info.textContent = '';
+  try {
+    const r = await fetch(SERVER + '/api/jira/children?key=' + encodeURIComponent(key));
+    const d = await r.json();
+    if (!d.ok) { box.innerHTML = `<div class="kb-empty" style="color:var(--red);">⚠ ${escHtml(d.error)}</div>`; return; }
+    jiraChildrenCache = d.children || [];
+    info.innerHTML = `Parent: <a href="${escHtml(d.parent.url)}" target="_blank" style="color:var(--accent);text-decoration:none;font-family:var(--mono);">${escHtml(d.parent.key)}</a> — ${escHtml(d.parent.summary)} <span class="jira-status ${jiraStatusClass(d.parent.statusCat)}" style="margin-left:6px;">${escHtml(d.parent.status)}</span>`;
+    renderChildren();
+  } catch (e) {
+    box.innerHTML = `<div class="kb-empty" style="color:var(--red);">⚠ ${escHtml(e.message)}</div>`;
+  }
+}
+
+function renderChildren() {
+  const box = document.getElementById('jira-children');
+  const showAll = document.getElementById('jira-show-all').checked;
+  let items = jiraChildrenCache;
+  if (!showAll) items = items.filter(i => QA_DEFAULT_STATUSES.includes((i.status || '').toLowerCase()));
+  if (!items.length) {
+    box.innerHTML = `<div class="kb-empty">${jiraChildrenCache.length ? 'No QA-Issues in “To Do” / “Ready in 1st Env”. Tick “Show all statuses”.' : 'No QA-Issues found under this ticket.'}</div>`;
+    return;
+  }
+  const head = `<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">${items.length} QA-Issue(s)${showAll ? '' : ' in To Do / Ready in 1st Env'}</div>`;
+  box.innerHTML = head + items.map(i => jiraRow(i, true)).join('');
+}
+
+// ════════════════════════════════════════ AI TEST PLANS
+let currentPlan = null;
+let currentPlanKey = null;
+
+async function generatePlan() {
+  const key = document.getElementById('ai-key').value.trim().toUpperCase();
+  if (!key) { alert('Enter a ticket key first.'); return; }
+  const btn = document.getElementById('ai-gen-btn');
+  const status = document.getElementById('ai-gen-status');
+  const view = document.getElementById('ai-plan-view');
+  btn.disabled = true;
+  status.textContent = '';
+  view.innerHTML = `<div class="card"><div style="display:flex;align-items:center;gap:12px;color:var(--text2);font-size:13px;">
+    <span class="spinner"></span> AI is studying ${escHtml(key)} and drafting a test plan… (~15–40s)</div></div>`;
+  try {
+    const r = await fetch(SERVER + '/api/ai/plan', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    });
+    const d = await r.json();
+    if (!d.ok) { view.innerHTML = `<div class="card"><div style="color:var(--red);font-size:13px;">⚠ ${escHtml(d.error)}</div></div>`; return; }
+    currentPlan = d.plan; currentPlanKey = key;
+    renderPlan(d.plan, key, false);
+  } catch (e) {
+    view.innerHTML = `<div class="card"><div style="color:var(--red);font-size:13px;">⚠ ${escHtml(e.message)}</div></div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderPlan(plan, key, approved) {
+  const view = document.getElementById('ai-plan-view');
+  const sc = (plan.scenarios || []).map(s => `
+    <div class="scenario">
+      <div class="scenario-top">
+        <span class="scenario-id">${escHtml(s.id || '')}</span>
+        <span class="scenario-title">${escHtml(s.title || '')}</span>
+        ${s.type ? `<span class="pill ${escHtml((s.type||'').toLowerCase())}">${escHtml(s.type)}</span>` : ''}
+        ${s.priority ? `<span class="pill ${escHtml((s.priority||'').toLowerCase())}">${escHtml(s.priority)}</span>` : ''}
+      </div>
+      ${s.preconditions ? `<div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Preconditions: ${escHtml(s.preconditions)}</div>` : ''}
+      <ol class="scenario-steps">${(s.steps||[]).map(st => `<li>${escHtml(st)}</li>`).join('')}</ol>
+      <div class="scenario-exp"><b>Expected:</b> ${escHtml(s.expected || '')}</div>
+      ${s.testData ? `<div class="scenario-data">Test data: ${escHtml(s.testData)}</div>` : ''}
+    </div>`).join('');
+
+  const oq = (plan.openQuestions || []).filter(Boolean);
+  const risks = (plan.risks || []).filter(Boolean);
+
+  view.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div class="section-title" style="margin:0;">Test Plan — ${escHtml(key)} ${approved ? '<span class="plan-approved-badge">Approved</span>' : ''}</div>
+        <div class="plan-actions">
+          <button class="btn btn-stop btn-sm" onclick="generatePlan()">↻ Regenerate</button>
+          <button class="btn btn-stop btn-sm" onclick="toggleEditPlan()">Edit JSON</button>
+          <button class="btn btn-run btn-sm" onclick="approvePlan()">✓ Approve Plan</button>
+        </div>
+      </div>
+
+      <div class="plan-meta-grid">
+        <div class="plan-field"><div class="pf-label">AI Understanding</div><div class="pf-val">${escHtml(plan.understanding || '-')}</div></div>
+        <div class="plan-field"><div class="pf-label">Summary</div><div class="pf-val">${escHtml(plan.summary || '-')}</div></div>
+        <div class="plan-field"><div class="pf-label">In Scope</div><div class="pf-val">${escHtml(plan.scope || '-')}</div></div>
+        <div class="plan-field"><div class="pf-label">Out of Scope</div><div class="pf-val">${escHtml(plan.outOfScope || '-')}</div></div>
+      </div>
+
+      ${oq.length ? `<div class="open-q"><div class="pf-label" style="color:var(--amber);margin-bottom:6px;">⚠ Open Questions — clarify before testing</div><ul>${oq.map(q=>`<li>${escHtml(q)}</li>`).join('')}</ul></div>` : ''}
+
+      <div class="section-title" style="margin:18px 0 10px;">Scenarios (${(plan.scenarios||[]).length})</div>
+      ${sc || '<div class="kb-empty">No scenarios generated.</div>'}
+
+      ${risks.length ? `<div class="risks" style="margin-top:14px;"><div class="pf-label" style="margin-bottom:6px;">Risks</div><ul>${risks.map(x=>`<li>${escHtml(x)}</li>`).join('')}</ul></div>` : ''}
+
+      <div id="plan-edit-box" style="display:none;margin-top:14px;">
+        <label>Edit plan JSON (advanced)</label>
+        <textarea id="plan-json" rows="12" style="width:100%;font-family:var(--mono);font-size:12px;">${escHtml(JSON.stringify(plan, null, 2))}</textarea>
+        <div style="margin-top:8px;"><button class="btn btn-run btn-sm" onclick="saveEditedPlan()">Apply Edits</button></div>
+      </div>
+    </div>`;
+}
+
+function toggleEditPlan() {
+  const b = document.getElementById('plan-edit-box');
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+}
+function saveEditedPlan() {
+  try {
+    currentPlan = JSON.parse(document.getElementById('plan-json').value);
+    renderPlan(currentPlan, currentPlanKey, false);
+  } catch (e) { alert('Invalid JSON: ' + e.message); }
+}
+
+async function approvePlan() {
+  if (!currentPlan || !currentPlanKey) return;
+  await fetch(SERVER + '/api/plans', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: currentPlanKey, plan: currentPlan, status: 'approved' }),
+  });
+  renderPlan(currentPlan, currentPlanKey, true);
+  loadApprovedPlans();
+  document.getElementById('ai-gen-status').textContent = '✓ Plan approved & saved.';
+}
+
+async function loadApprovedPlans() {
+  try {
+    const d = await (await fetch(SERVER + '/api/plans')).json();
+    const plans = d.plans || {};
+    const keys = Object.keys(plans).filter(k => plans[k].status === 'approved');
+    const box = document.getElementById('ai-approved-list');
+    if (!keys.length) { box.innerHTML = '<div class="kb-empty">No approved plans yet.</div>'; return; }
+    box.innerHTML = keys.map(k => {
+      const p = plans[k];
+      const n = (p.plan.scenarios || []).length;
+      return `<div class="jira-row">
+        <span class="jira-key">${escHtml(k)}</span>
+        <span class="jira-summary" title="${escHtml(p.plan.summary||'')}">${escHtml(p.plan.summary || '')}</span>
+        <span class="jira-type">${n} scenario${n===1?'':'s'}</span>
+        <button class="kb-mini-btn edit" onclick="viewApprovedPlan('${k}')">view</button>
+      </div>`;
+    }).join('');
+  } catch (e) {}
+}
+
+async function viewApprovedPlan(key) {
+  const d = await (await fetch(SERVER + '/api/plans')).json();
+  const p = d.plans[key];
+  if (!p) return;
+  currentPlan = p.plan; currentPlanKey = key;
+  document.getElementById('ai-key').value = key;
+  renderPlan(p.plan, key, p.status === 'approved');
+  document.getElementById('ai-plan-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // ════════════════════════════════════════ INIT
 document.getElementById('dateStamp').textContent =
   new Date().toLocaleDateString('en-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 initEstmSteps();
 load();
+loadKnowledge();
 </script>
 </body>
 </html>
