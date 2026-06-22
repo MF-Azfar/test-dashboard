@@ -4,6 +4,7 @@ const path       = require('path');
 const fs         = require('fs');
 const ExcelJS    = require('exceljs');
 const os         = require('os');
+const pdfParse   = require('pdf-parse');
 
 const app  = express();
 const PORT = 3000;
@@ -554,28 +555,52 @@ app.get('/api/jira/children', async (req, res) => {
   } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
-// ── AI brain (Option A: Claude Code CLI headless — uses existing login, no API key) ──
-const CLAUDE_EXE = (() => {
-  const candidates = [
-    path.join(process.env.APPDATA || '', 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe'),
-    path.join(process.env.APPDATA || '', 'npm', 'claude.cmd'),
-  ];
-  return candidates.find(p => p && fs.existsSync(p)) || null;
-})();
+// ── AI brain (OpenRouter — key stored in data/knowledge.json, gitignored) ──
+async function callAI(instruction, context, timeoutMs = 60000) {
+  const settings = (readKB().settings || {});
+  const key   = settings.aiKey   || '';
+  const model = settings.aiModel || 'deepseek/deepseek-chat';
+  if (!key) throw new Error('No AI API key configured. Add your OpenRouter key in Knowledge Base → Settings.');
 
-function callClaude(instruction, context, timeoutMs = 120000) {
-  return new Promise((resolve, reject) => {
-    if (!CLAUDE_EXE) return reject(new Error('Claude Code CLI not found. Install: npm i -g @anthropic-ai/claude-code, then log in.'));
-    const child = spawn(CLAUDE_EXE, ['-p', instruction, '--output-format', 'text'], { stdio: ['pipe', 'pipe', 'pipe'] });
-    let out = '', err = '';
-    const to = setTimeout(() => { try { child.kill(); } catch {} reject(new Error('AI timed out after ' + (timeoutMs/1000) + 's')); }, timeoutMs);
-    child.stdout.on('data', d => out += d);
-    child.stderr.on('data', d => err += d);
-    child.on('error', e => { clearTimeout(to); reject(e); });
-    child.stdin.write(context); child.stdin.end();
-    child.on('close', code => { clearTimeout(to); code === 0 ? resolve(out) : reject(new Error('AI exited ' + code + ': ' + err.slice(0, 300))); });
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + key,
+        'HTTP-Referer':  'http://localhost:3000',
+        'X-Title':       'eAuto QA Platform',
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: instruction },
+          { role: 'user',   content: context },
+        ],
+        temperature: 0.1,
+        max_tokens: 4096,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error('OpenRouter API error ' + resp.status + ': ' + txt.slice(0, 300));
+    }
+    const data = await resp.json();
+    return data.choices[0].message.content;
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error('AI timed out after ' + (timeoutMs/1000) + 's');
+    throw e;
+  }
 }
+
+// keep old name as alias so nothing else breaks
+const callClaude = callAI;
 
 function parseJsonLoose(s) {
   const t = s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
@@ -626,8 +651,8 @@ app.post('/api/ai/plan', async (req, res) => {
   if (!key)  return res.json({ ok: false, error: 'Provide a ticket key.' });
 
   try {
-    // 1. fetch ticket
-    const r = await fetch(conf.base + '/rest/api/3/issue/' + encodeURIComponent(key) + '?fields=summary,description,status,issuetype',
+    // 1. fetch ticket (include attachments)
+    const r = await fetch(conf.base + '/rest/api/3/issue/' + encodeURIComponent(key) + '?fields=summary,description,status,issuetype,attachment',
       { headers: { Authorization: conf.auth, Accept: 'application/json' } });
     if (!r.ok) return res.json({ ok: false, error: 'Ticket ' + key + ' not found (' + r.status + ').' });
     const i = await r.json();
@@ -637,17 +662,36 @@ app.post('/api/ai/plan', async (req, res) => {
       description: adfToText(i.fields.description).replace(/\n{3,}/g, '\n\n').trim(),
     };
 
-    // 2. relevant knowledge base context
+    // 2. extract text from any PDF attachments
+    const attachments = i.fields.attachment || [];
+    const pdfs = attachments.filter(a => a.mimeType === 'application/pdf' || a.filename?.toLowerCase().endsWith('.pdf'));
+    const pdfTexts = [];
+    for (const pdf of pdfs) {
+      try {
+        const dl = await fetch(pdf.content, { headers: { Authorization: conf.auth } });
+        if (dl.ok) {
+          const buf = Buffer.from(await dl.arrayBuffer());
+          const parsed = await pdfParse(buf);
+          const text = parsed.text.replace(/\n{3,}/g, '\n\n').trim();
+          if (text) pdfTexts.push(`=== ATTACHMENT: ${pdf.filename} ===\n${text}`);
+        }
+      } catch (pdfErr) {
+        pdfTexts.push(`=== ATTACHMENT: ${pdf.filename} ===\n(could not extract text: ${pdfErr.message})`);
+      }
+    }
+
+    // 3. relevant knowledge base context
     const kb = readKB().entries || [];
     const relevant = kb.filter(e => ['Business Rules', 'Test Conventions', 'App Structure', 'Page Objects', 'Environment'].includes(e.category));
     const kbText = relevant.length
       ? relevant.map(e => `[${e.category}] ${e.title}: ${e.body}`).join('\n')
       : '(no knowledge base entries yet)';
 
-    // 3. instruction + context
+    // 4. instruction + context
     const instruction =
       'You are a senior QA test analyst for the eAuto insurance platform (Malaysian vehicle insurance/registration). ' +
-      'Read the Jira ticket and knowledge base from stdin and produce a thorough manual+automation test plan. ' +
+      'Read the Jira ticket, any attached PDF documents, and the knowledge base below, then produce a thorough manual+automation test plan. ' +
+      'If PDF attachments are provided, extract any requirements, flows, or business rules from them and use them in your test scenarios. ' +
       'Be careful and complete — the goal is to NOT let any bug slip through. ' +
       'Output ONLY valid minified JSON (no markdown fences, no prose) with this exact schema: ' +
       '{"ticket":string,"summary":string,"understanding":string,"scope":string,"outOfScope":string,' +
@@ -658,9 +702,10 @@ app.post('/api/ai/plan', async (req, res) => {
 
     const context =
       `=== JIRA TICKET ${ticket.key} ===\nSummary: ${ticket.summary}\n\nDescription:\n${ticket.description || '(no description)'}\n\n` +
+      (pdfTexts.length ? pdfTexts.join('\n\n') + '\n\n' : '') +
       `=== KNOWLEDGE BASE ===\n${kbText}\n`;
 
-    const raw = await callClaude(instruction, context, 150000);
+    const raw = await callClaude(instruction, context, 60000);
     const plan = parseJsonLoose(raw);
     plan.ticket = plan.ticket || ticket.key;
     plan.summary = plan.summary || ticket.summary;
