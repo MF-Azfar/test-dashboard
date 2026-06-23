@@ -116,59 +116,92 @@ test('test', async ({ page }) => {
     await getActivePage().waitForLoadState('domcontentloaded').catch(() => {});
   };
 
-  // Closes dynamic campaign/modal overlays that can intercept pointer events.
-  // Includes a DOM-level fallback for the Raya campaign popup when standard close actions fail.
+  // Dismisses any modal/popup overlay on the active page.
+  // Handles eAuto's campaign popups (id changes each campaign: raya, cny, etc.)
+  // and any other modal that may appear. Safe to call when no popup is present.
   const closePopupIfPresent = async () => {
-    const popupContainers = [
-      page.locator('#dialog-raya-campaign'),
-      page.locator('[role="dialog"]'),
-      page.locator('.modal'),
-      page.locator('.swal2-container'),
-      page.locator('[class*="popup"]'),
+    const ap = getActivePage();
+
+    // Selectors that detect a visible popup — ordered from most specific to broadest
+    const CONTAINER_SELECTORS = [
+      '[id$="-campaign"]',       // #dialog-cny-campaign, #dialog-raya-campaign, etc.
+      '.modal-campaign',
+      '#eautoPopupOverlay',
+      '[role="dialog"]',
+      '.modal.in',
+      '.modal.show',
+      '.swal2-container',
+      '[class*="popup"]',
     ];
 
-    const closeTargets = [
-      page.locator('#dialog-raya-campaign').getByText('×').first(),
-      page.locator('#dialog-raya-campaign [aria-label="Close"]').first(),
-      page.getByRole('button', { name: '×' }).first(),
-      page.getByRole('button', { name: /close/i }).first(),
-      page.locator('.swal2-close').first(),
-      page.locator('[data-dismiss="modal"]').first(),
-    ];
-
-    for (let attempt = 0; attempt < 6; attempt++) {
-      let popupVisible = false;
-      for (const container of popupContainers) {
-        if (await container.isVisible().catch(() => false)) {
-          popupVisible = true;
+    // Wait up to 3s for a popup to appear (handles post-login delayed popups)
+    let popupFound = false;
+    const deadline = Date.now() + 3000;
+    while (Date.now() < deadline) {
+      for (const sel of CONTAINER_SELECTORS) {
+        if (await ap.locator(sel).first().isVisible().catch(() => false)) {
+          popupFound = true;
           break;
         }
       }
-      if (!popupVisible) return;
+      if (popupFound) break;
+      await ap.waitForTimeout(200);
+    }
+    if (!popupFound) return;
 
-      let closed = false;
-      for (const target of closeTargets) {
-        if (await target.isVisible().catch(() => false)) {
-          await target.click({ force: true }).catch(() => {});
-          closed = true;
+    // Keep dismissing until clear — handles multiple stacked popups
+    for (let attempt = 0; attempt < 8; attempt++) {
+      let stillVisible = false;
+      for (const sel of CONTAINER_SELECTORS) {
+        if (await ap.locator(sel).first().isVisible().catch(() => false)) {
+          stillVisible = true;
+          break;
+        }
+      }
+      if (!stillVisible) return;
+
+      // 1. Click the campaign close span/button (covers all campaign dialogs)
+      const campaignClose = ap.locator('#dialog-campaign-close-btn, .close-btn').first();
+      if (await campaignClose.isVisible().catch(() => false)) {
+        await campaignClose.click({ force: true }).catch(() => {});
+        await ap.waitForTimeout(400);
+        continue;
+      }
+
+      // 2. Standard close buttons (button or span with × / close text)
+      const stdClose = ap.locator('[aria-label="Close"], [data-dismiss="modal"], .swal2-close, button.close, .close').first();
+      if (await stdClose.isVisible().catch(() => false)) {
+        await stdClose.click({ force: true }).catch(() => {});
+        await ap.waitForTimeout(400);
+        continue;
+      }
+
+      // 3. Any × or close-text button/span visible on page
+      for (const text of ['×', 'Close', 'OK', 'Got it', 'Dismiss', 'Tutup']) {
+        const el = ap.locator(`button:has-text("${text}"), span:has-text("${text}")`).first();
+        if (await el.isVisible().catch(() => false)) {
+          await el.click({ force: true }).catch(() => {});
           break;
         }
       }
 
-      if (!closed) {
-        await page.keyboard.press('Escape').catch(() => {});
-      }
+      // 4. Escape key
+      await ap.keyboard.press('Escape').catch(() => {});
 
-      // Last-resort campaign modal removal for overlays that still intercept clicks.
-      await page.evaluate(() => {
-        const modal = document.querySelector<HTMLElement>('#dialog-raya-campaign');
-        if (!modal) return;
-        modal.style.display = 'none';
-        modal.style.pointerEvents = 'none';
+      // 5. DOM force-remove as last resort
+      await ap.evaluate(() => {
+        const ids = ['eautoPopupOverlay'];
+        const clsPatterns = ['modal-campaign', 'popup-overlay'];
+        document.querySelectorAll<HTMLElement>('[id$="-campaign"], .modal-campaign, #eautoPopupOverlay, [class*="popup"]').forEach(el => {
+          el.style.display = 'none';
+          el.style.visibility = 'hidden';
+          el.style.pointerEvents = 'none';
+        });
+        document.querySelectorAll<HTMLElement>('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
       }).catch(() => {});
 
-      await page.locator('#dialog-raya-campaign').waitFor({ state: 'hidden', timeout: 1500 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await ap.waitForTimeout(400);
     }
   };
 
