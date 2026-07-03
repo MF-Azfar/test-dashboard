@@ -583,6 +583,10 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
     <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
     Insurance
   </button>
+  <button class="side-tab" onclick="switchTab('insurance-e2e',this)">
+    <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+    Insurance E2E
+  </button>
   <button class="side-tab soon">
     <span class="side-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
     STMS <span class="soon-pill">soon</span>
@@ -920,6 +924,164 @@ label { color: var(--text2); font-weight: 500; font-size: 12px; letter-spacing: 
     <div class="stats-bar" id="ins-stats-bar"></div>
     <div id="ins-results-body"></div>
   </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ INSURANCE E2E TAB -->
+<div id="tab-insurance-e2e" class="tab-panel">
+  <div class="page-head">
+    <h2>Insurance E2E — Full Purchase &amp; Verification</h2>
+    <p>Drives the complete UCD insurance flow (Quotes → Optional Coverage → Payment → Confirm) then cross-checks every field on the Listing &amp; Details pages. Records an annotated video + screenshots. <b>Each successful run consumes the vehicle number.</b></p>
+  </div>
+
+  <!-- Config -->
+  <div class="card">
+    <div class="section-title">Staging Environment</div>
+    <div class="env-group">
+      <button class="env-preset active" onclick="setE2eEnv('sit3',this)">sit3</button>
+      <button class="env-preset" onclick="setE2eEnv('sit2',this)">sit2</button>
+      <button class="env-preset" onclick="setE2eEnv('uat2',this)">uat2</button>
+      <button class="env-preset" onclick="setE2eEnv('uat3',this)">uat3</button>
+      <button class="env-preset" onclick="setE2eEnv('preprod1',this)">preprod1</button>
+      <button class="env-preset" onclick="setE2eEnv('preprod2',this)">preprod2</button>
+    </div>
+    <input type="text" id="e2e-env" value="sit3" placeholder="or type custom env…" style="max-width:220px;">
+
+    <div class="form-row cols2" style="margin-top:16px;">
+      <div>
+        <label>Username</label>
+        <input type="text" id="e2e-username" value="Azfar1" placeholder="Azfar1">
+      </div>
+      <div>
+        <label>Password</label>
+        <div class="input-wrap">
+          <input type="password" id="e2e-password" value="123456" placeholder="123456">
+          <button class="eye-btn" onclick="togglePwd('e2e-password',this)">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row cols2" style="margin-top:14px;">
+      <div>
+        <label>Vehicle Number <span style="color:var(--red)">*</span> <span style="color:var(--text3);font-weight:400;">(new each run — single use)</span></label>
+        <input type="text" id="e2e-vn" placeholder="e.g. WTF6008" autocomplete="off">
+      </div>
+      <div>
+        <label>IC / ROC Number <span style="color:var(--red)">*</span></label>
+        <input type="text" id="e2e-ic" placeholder="e.g. 990909010122" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-row cols2" style="margin-top:14px;">
+      <div>
+        <label>Notification Email <span style="color:var(--text3);font-weight:400;">(receives the e-certificate)</span></label>
+        <input type="text" id="e2e-email" value="amirul.azfar@modefair.com" placeholder="user@example.com">
+      </div>
+      <div>
+        <label>Vehicle Category</label>
+        <div class="toggle-group">
+          <button class="tog active" onclick="setE2eCat('individual',this)">Individual</button>
+          <button class="tog" onclick="setE2eCat('company',this)">Company</button>
+        </div>
+        <input type="hidden" id="e2e-category" value="individual">
+      </div>
+    </div>
+
+    <div class="form-row cols2" style="margin-top:14px;">
+      <div>
+        <label>Insurer to purchase</label>
+        <select id="e2e-insurer">
+          <option value="first">First card offered</option>
+          <option value="random">Random (any offered)</option>
+          <option value="zurich-comprehensive">Zurich — Comprehensive</option>
+          <option value="zurich-tpft">Zurich — TPFT</option>
+          <option value="takaful-comprehensive">Takaful Malaysia — Comprehensive</option>
+          <option value="takaful-tpft">Takaful Malaysia — TPFT</option>
+          <option value="chubb">Chubb</option>
+        </select>
+      </div>
+      <div>
+        <label>Optional coverage</label>
+        <select id="e2e-coverage">
+          <option value="random">Random mix &amp; match</option>
+          <option value="none">None (bare cover)</option>
+          <option value="all">All available add-ons</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row cols2" style="margin-top:14px;">
+      <div>
+        <label>Sum Covered</label>
+        <select id="e2e-sum">
+          <option value="default">Keep default (as returned)</option>
+          <option value="random">Random within range</option>
+          <option value="max">Maximum</option>
+        </select>
+      </div>
+      <div>
+        <label>Hire Purchase bank</label>
+        <select id="e2e-bank">
+          <option value="random">Random bank</option>
+          <option>Maybank Berhad</option>
+          <option>CIMB Bank Berhad</option>
+          <option>Public Bank Berhad</option>
+          <option>RHB Bank Berhad</option>
+          <option>Hong Leong Bank Berhad</option>
+          <option>AmBank Berhad</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-actions" style="margin-top:18px;">
+      <button class="btn btn-run" id="btn-e2e-run" onclick="runInsuranceE2E()">&#9654; Run Full E2E</button>
+      <button class="btn btn-stop" id="btn-e2e-stop" disabled onclick="stopRun()">&#9632; Stop</button>
+      <span id="e2e-verdict-pill" style="display:none;margin-left:auto;font-weight:600;font-size:13px;padding:5px 12px;border-radius:20px;"></span>
+    </div>
+  </div>
+
+  <!-- Step progress -->
+  <div class="card">
+    <div class="section-title">Step Progress</div>
+    <div class="step-grid" id="e2e-steps"></div>
+  </div>
+
+  <!-- Verification results -->
+  <div class="card" id="e2e-verify-card" style="display:none;">
+    <div class="section-title">Verification Checks</div>
+    <div id="e2e-summary-line" style="font-size:13px;color:var(--text2);margin-bottom:12px;"></div>
+    <div class="vehicle-table-wrap">
+      <table class="ins-table" id="e2e-verify-table">
+        <thead><tr><th style="width:40px;">#</th><th>Check</th><th style="width:90px;">Result</th><th>Detail</th></tr></thead>
+        <tbody id="e2e-verify-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Captured data snapshot -->
+  <div class="card" id="e2e-snapshot-card" style="display:none;">
+    <div class="section-title">Captured Data — key fields across pages</div>
+    <div class="vehicle-table-wrap">
+      <table class="ins-table" id="e2e-snapshot-table"><tbody id="e2e-snapshot-body"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Artifacts -->
+  <div class="card" id="e2e-artifacts-card" style="display:none;">
+    <div class="section-title">Recording &amp; Screenshots</div>
+    <div id="e2e-video-wrap" style="margin-bottom:16px;"></div>
+    <div id="e2e-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+  </div>
+
+  <!-- Live log -->
+  <div class="card">
+    <div class="section-title">Live Log</div>
+    <div class="log-panel" id="e2e-log"></div>
+  </div>
+</div>
+
+<!-- Lightbox for annotated screenshots -->
+<div id="e2e-lightbox" onclick="closeE2eLightbox()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:32px;cursor:zoom-out;">
+  <img id="e2e-lightbox-img" style="max-width:95%;max-height:92%;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.6);">
 </div>
 
 <!-- ════════════════════════════════════════════════════ KNOWLEDGE BASE TAB -->
@@ -1370,6 +1532,170 @@ function showEstmResult(data) {
     + kv('Email', escHtml(data.emailAddress || '-'))
     + kv('Mobile', escHtml(data.mobileNo || '-'))
     + `<div class="result-kv"><div class="result-key">Final URL</div><div class="result-url"><a href="${escHtml(data.finalUrl||'#')}" target="_blank">${escHtml(data.finalUrl||'-')}</a></div></div>`;
+}
+
+// ════════════════════════════════════════ INSURANCE E2E TAB
+const E2E_STEPS = [
+  { step:'login',      label:'Login' },
+  { step:'free_quote', label:'Open Insurance' },
+  { step:'quotes',     label:'Step 1 · Quotes' },
+  { step:'coverage',   label:'Step 2 · Coverage' },
+  { step:'payment',    label:'Step 3 · Payment' },
+  { step:'confirm',    label:'Step 4 · Confirm' },
+  { step:'listing',    label:'Verify Listing' },
+  { step:'details',    label:'Verify Details' },
+  { step:'summary',    label:'Summary' },
+];
+
+function initE2eSteps() {
+  const grid = document.getElementById('e2e-steps');
+  grid.innerHTML = '';
+  E2E_STEPS.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.id = 'e2e-step-' + s.step;
+    card.innerHTML = `<span class="step-num">${String(i+1).padStart(2,'0')}</span><span class="step-label">${escHtml(s.label)}</span><span class="step-icon">⏳</span>`;
+    grid.appendChild(card);
+  });
+}
+function updateE2eStep(step, status) {
+  const card = document.getElementById('e2e-step-' + step);
+  if (!card) return;
+  card.className = 'step-card ' + status;
+  const icon = card.querySelector('.step-icon');
+  icon.textContent = status === 'running' ? '▶' : status === 'done' ? '✅' : status === 'error' ? '❌' : '⏳';
+}
+function resetE2eSteps() { E2E_STEPS.forEach(s => updateE2eStep(s.step, 'pending')); }
+
+function setE2eEnv(env, btn) {
+  document.getElementById('e2e-env').value = env;
+  document.querySelectorAll('#tab-insurance-e2e .env-preset').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setE2eCat(val, btn) {
+  document.getElementById('e2e-category').value = val;
+  btn.parentElement.querySelectorAll('.tog').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function openE2eLightbox(src) {
+  document.getElementById('e2e-lightbox-img').src = src;
+  document.getElementById('e2e-lightbox').style.display = 'flex';
+}
+function closeE2eLightbox() { document.getElementById('e2e-lightbox').style.display = 'none'; }
+
+function addE2eArtifact(a) {
+  document.getElementById('e2e-artifacts-card').style.display = 'block';
+  if (a.kind === 'video') {
+    document.getElementById('e2e-video-wrap').innerHTML =
+      `<video src="${escHtml(a.url)}" controls style="width:100%;max-height:520px;border-radius:8px;border:1px solid var(--border);background:#000;"></video>
+       <div style="font-size:12px;color:var(--text3);margin-top:6px;">🎬 ${escHtml(a.caption||a.file)} · <a href="${escHtml(a.url)}" download style="color:var(--blue);">download</a></div>`;
+  } else {
+    const g = document.getElementById('e2e-gallery');
+    const cell = document.createElement('div');
+    cell.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface2);cursor:zoom-in;';
+    cell.innerHTML =
+      `<img src="${escHtml(a.url)}" style="width:100%;height:130px;object-fit:cover;object-position:top;display:block;">
+       <div style="padding:7px 9px;font-size:11px;color:var(--text2);line-height:1.35;">${escHtml(a.caption||a.file)}</div>`;
+    cell.onclick = () => openE2eLightbox(a.url);
+    g.appendChild(cell);
+  }
+}
+
+function renderE2eResult(data) {
+  // verdict pill
+  const pill = document.getElementById('e2e-verdict-pill');
+  const ok = data.failed === 0;
+  pill.style.display = 'inline-block';
+  pill.textContent = data.verdict || (ok ? 'PASSED' : 'FAILED');
+  pill.style.background = ok ? 'var(--accent-dim)' : 'var(--red-dim)';
+  pill.style.color = ok ? 'var(--accent)' : 'var(--red)';
+
+  // checks table
+  document.getElementById('e2e-verify-card').style.display = 'block';
+  document.getElementById('e2e-summary-line').innerHTML =
+    `<b>${escHtml(data.vehicleNo||'')}</b> · ${escHtml(data.insurer||'')} · ${escHtml(data.coverType||'')} · Ref ${escHtml(data.referenceNo||'-')} · E-Cert ${escHtml(data.eCert||'-')} · Paid ${escHtml(data.paymentAmount||'-')} · JPJ ${escHtml(data.jpj||'-')} — <b style="color:${ok?'var(--accent)':'var(--red)'}">${data.passed}/${(data.checks||[]).length} checks passed</b>`;
+  const body = document.getElementById('e2e-verify-body');
+  body.innerHTML = '';
+  (data.checks || []).forEach((c, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td style="color:var(--text3);">${i+1}</td>
+       <td>${escHtml(c.name)}</td>
+       <td class="${c.pass?'allow-yes':'allow-no'}">${c.pass?'✅ PASS':'❌ FAIL'}</td>
+       <td style="color:var(--text2);font-size:11px;">${escHtml(c.detail)}</td>`;
+    body.appendChild(tr);
+  });
+
+  // snapshot table (page → key fields)
+  if (data.snap) {
+    document.getElementById('e2e-snapshot-card').style.display = 'block';
+    const sb = document.getElementById('e2e-snapshot-body');
+    sb.innerHTML = '';
+    Object.entries(data.snap).forEach(([pg, fields]) => {
+      const head = document.createElement('tr');
+      head.innerHTML = `<td colspan="2" style="background:var(--surface3);font-weight:600;text-transform:capitalize;color:var(--text);">${escHtml(pg)}</td>`;
+      sb.appendChild(head);
+      Object.entries(fields || {}).forEach(([k, val]) => {
+        if (val === '' || val == null) return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="color:var(--text3);width:230px;">${escHtml(k)}</td><td style="color:var(--text2);">${escHtml(String(val))}</td>`;
+        sb.appendChild(tr);
+      });
+    });
+  }
+}
+
+async function runInsuranceE2E() {
+  const env = document.getElementById('e2e-env').value.trim();
+  const vn  = document.getElementById('e2e-vn').value.trim();
+  const ic  = document.getElementById('e2e-ic').value.trim();
+  if (!env) { alert('Enter a staging environment.'); return; }
+  if (!vn)  { alert('Enter a vehicle number (new one each run — it is single-use).'); return; }
+  if (!ic)  { alert('Enter an IC / ROC number.'); return; }
+
+  clearLog('e2e-log');
+  initE2eSteps();
+  resetE2eSteps();
+  document.getElementById('e2e-verify-card').style.display = 'none';
+  document.getElementById('e2e-snapshot-card').style.display = 'none';
+  document.getElementById('e2e-artifacts-card').style.display = 'none';
+  document.getElementById('e2e-gallery').innerHTML = '';
+  document.getElementById('e2e-video-wrap').innerHTML = '';
+  document.getElementById('e2e-verdict-pill').style.display = 'none';
+  document.getElementById('btn-e2e-run').disabled = true;
+  document.getElementById('btn-e2e-stop').disabled = false;
+
+  const config = {
+    env,
+    username: document.getElementById('e2e-username').value.trim(),
+    password: document.getElementById('e2e-password').value,
+    vehicleNo: vn,
+    ic,
+    email:    document.getElementById('e2e-email').value.trim(),
+    category: document.getElementById('e2e-category').value,
+    insurer:  document.getElementById('e2e-insurer').value,
+    coverage: document.getElementById('e2e-coverage').value,
+    sumMode:  document.getElementById('e2e-sum').value,
+    bank:     document.getElementById('e2e-bank').value,
+  };
+
+  try {
+    await streamRun('/api/insurance-e2e/run', { config }, (evt, data) => {
+      if (evt === 'log' || evt === 'error') appendLog('e2e-log', data.text, evt === 'error' ? 'error' : data.level);
+      else if (evt === 'progress') updateE2eStep(data.step, data.status);
+      else if (evt === 'artifact') addE2eArtifact(data);
+      else if (evt === 'result')   renderE2eResult(data);
+      else if (evt === 'status' && data.status !== 'running') {
+        document.getElementById('btn-e2e-run').disabled = false;
+        document.getElementById('btn-e2e-stop').disabled = true;
+      }
+    });
+  } catch (e) {
+    appendLog('e2e-log', 'Connection error: ' + e.message, 'error');
+    document.getElementById('btn-e2e-run').disabled = false;
+    document.getElementById('btn-e2e-stop').disabled = true;
+  }
 }
 
 // ════════════════════════════════════════ INSURANCE TAB
@@ -2371,6 +2697,7 @@ async function viewApprovedPlan(key) {
 document.getElementById('dateStamp').textContent =
   new Date().toLocaleDateString('en-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 initEstmSteps();
+initE2eSteps();
 load();
 loadKnowledge();
 </script>

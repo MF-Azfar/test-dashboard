@@ -12,6 +12,10 @@ estm/playwright-report/
 estm/test-results/
 insurance/playwright-report/
 insurance/test-results/
+insurance/e2e/.pw-results/
+
+# Insurance E2E run artifacts (videos + annotated screenshots), served from public/
+public/artifacts/
 
 # Env / secrets
 .env

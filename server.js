@@ -364,6 +364,138 @@ app.post('/api/estm/run', (req, res) => {
   });
 });
 
+// ── Insurance E2E run (full UCD purchase + cross-page verification) ───────────
+const PUBLIC_DIR    = path.join(__dirname, 'public');
+const ARTIFACTS_DIR = path.join(PUBLIC_DIR, 'artifacts');
+const E2E_PW_RESULTS = path.join(INSURANCE_DIR, 'e2e', '.pw-results');
+
+// Playwright only finalizes a recording once the browser context closes, which
+// happens AFTER the test (and any afterEach) returns — so the spec itself can
+// never reliably hand us a finished video file. Instead Playwright saves it to
+// its own default location once the process is done, and we pick it up here.
+function findLatestVideo(rootDir) {
+  let newest = null;
+  const walk = (dir, depth) => {
+    if (depth > 3) return;
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full, depth + 1);
+      else if (e.isFile() && e.name.toLowerCase().endsWith('.webm')) {
+        const stat = fs.statSync(full);
+        if (!newest || stat.mtimeMs > newest.mtimeMs) newest = { path: full, mtimeMs: stat.mtimeMs };
+      }
+    }
+  };
+  walk(rootDir, 0);
+  return newest?.path || null;
+}
+
+app.post('/api/insurance-e2e/run', (req, res) => {
+  sseSetup(res);
+
+  const { config } = req.body || {};
+  if (!config?.env)       { sseSend(res,'error',{text:'Staging environment required.'}); return res.end(); }
+  if (!config?.vehicleNo) { sseSend(res,'error',{text:'Vehicle number required.'}); return res.end(); }
+  if (!config?.ic)        { sseSend(res,'error',{text:'IC number required.'}); return res.end(); }
+
+  killActive();
+
+  // One artifact folder per run, served statically from /artifacts/<runId>/.
+  const runId       = `${String(config.vehicleNo).replace(/[^a-z0-9]/gi,'')}-${Date.now()}`;
+  const artifactDir = path.join(ARTIFACTS_DIR, runId);
+  fs.mkdirSync(artifactDir, { recursive: true });
+  const artifactBase = `/artifacts/${runId}`;
+
+  sseSend(res, 'meta',   { runId, artifactBase });
+  sseSend(res, 'log',    { text:`🚀 Insurance E2E — ${config.vehicleNo} on ${config.env}${config.stopBeforePayment ? ' (dry run — stop before payment)' : ''}…`, level:'info' });
+  sseSend(res, 'status', { status:'running' });
+
+  const args = [
+    INS_PW_CLI, 'test', '--config=e2e.config.ts',
+    '--project=insurance-e2e', '--workers=1', '--reporter=list',
+    config.headless ? '' : '--headed',
+  ].filter(Boolean);
+
+  const child = spawnPlaywright(args, INSURANCE_DIR, {
+    E2E_ENV:                 config.env,
+    E2E_USERNAME:            config.username || 'Azfar1',
+    E2E_PASSWORD:            config.password || '123456',
+    E2E_VEHICLE_NO:          config.vehicleNo,
+    E2E_IC:                  config.ic,
+    E2E_CATEGORY:            config.category || 'individual',
+    E2E_EMAIL:               config.email    || 'amirul.azfar@modefair.com',
+    E2E_INSURER:             config.insurer  || 'first',
+    E2E_COVERAGE:            config.coverage || 'random',
+    E2E_SUM:                 config.sumMode  || 'default',
+    E2E_BANK:                config.bank     || 'random',
+    E2E_ARTIFACT_DIR:        artifactDir,
+    E2E_STOP_BEFORE_PAYMENT: config.stopBeforePayment ? '1' : '0',
+    E2E_HEADLESS:            config.headless ? 'true' : 'false',
+    E2E_SLOWMO:              String(config.slowMo || 300),
+  });
+
+  activeProcess = child;
+  activeJobDone = false;
+
+  const handleLine = (raw) => {
+    const line = raw.replace(/\x1b\[[0-9;]*m/g, '').trim();
+    if (!line) return;
+    if (line.includes('PROGRESS:')) { try { sseSend(res,'progress', JSON.parse(line.split('PROGRESS:')[1])); } catch {} return; }
+    if (line.includes('ART:'))      { try { const a = JSON.parse(line.split('ART:')[1]); a.url = `${artifactBase}/${a.file}`; sseSend(res,'artifact', a); } catch {} return; }
+    if (line.includes('RESULT:'))   { try { sseSend(res,'result', JSON.parse(line.split('RESULT:')[1])); } catch {} return; }
+    let level = 'info';
+    if (line.includes('✅') || line.includes('passed')) level = 'success';
+    if (line.includes('❌') || /error/i.test(line))     level = 'error';
+    if (line.includes('⚠️'))                            level = 'warning';
+    if (line.startsWith('·') || line.startsWith('  ✓')) level = 'muted';
+    sseSend(res, 'log', { text: line, level });
+  };
+
+  let buf = '';
+  child.stdout.on('data', d => { buf += d.toString(); const ls = buf.split('\n'); buf = ls.pop() || ''; ls.forEach(handleLine); });
+  child.stderr.on('data', d => d.toString().split('\n').forEach(l => {
+    l = l.replace(/\x1b\[[0-9;]*m/g,'').trim();
+    if (l && !/DeprecationWarning|ExperimentalWarning/.test(l))
+      sseSend(res, 'log', { text: `[err] ${l}`, level: /error/i.test(l) ? 'error' : 'muted' });
+  }));
+
+  child.on('close', (code) => {
+    if (buf.trim()) handleLine(buf);
+    activeProcess = null; activeJobDone = true;
+
+    // The process has fully exited, so Playwright's own context teardown has
+    // already finalized the recording. Copy it from Playwright's default
+    // location into this run's artifact folder and tell the UI it's ready.
+    try {
+      const src = findLatestVideo(E2E_PW_RESULTS);
+      if (src) {
+        const videoFile = `${config.vehicleNo}_insurance-e2e.webm`;
+        fs.copyFileSync(src, path.join(artifactDir, videoFile));
+        sseSend(res, 'artifact', { kind: 'video', file: videoFile, url: `${artifactBase}/${videoFile}`, caption: `Full run recording — ${config.vehicleNo}` });
+        sseSend(res, 'log', { text: `🎬 Recording ready — ${videoFile}`, level: 'success' });
+      } else {
+        sseSend(res, 'log', { text: '⚠️ No recording found to attach.', level: 'warning' });
+      }
+    } catch (err) {
+      sseSend(res, 'log', { text: `⚠️ Could not attach recording: ${err.message}`, level: 'warning' });
+    }
+
+    sseSend(res, 'log',    { text: code === 0 ? '✅ Insurance E2E finished.' : `Process ended — code=${code}`, level: code === 0 ? 'success' : 'error' });
+    sseSend(res, 'status', { status: code === 0 ? 'done' : 'error' });
+    res.end();
+  });
+  child.on('error', err => {
+    sseSend(res, 'error',  { text: `Failed to start Playwright: ${err.message}` });
+    sseSend(res, 'status', { status: 'error' });
+    activeProcess = null; res.end();
+  });
+  req.on('close', () => {
+    if (!activeJobDone && activeProcess === child) console.log('[server] client disconnected — insurance-e2e keeps running');
+  });
+});
+
 // ── Insurance run (parallel workers) ─────────────────────────────────────────
 app.post('/api/insurance/run', async (req, res) => {
   sseSetup(res);
